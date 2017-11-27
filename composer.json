@@ -1,0 +1,19 @@
+{
+  "name": "sztyup/multisite",
+  "description": "Multisite plugin for laravel",
+  "license": "MIT",
+  "authors": [{
+    "name": "Csupity László",
+    "email": "sztyup@gmail.com"
+  }],
+  "require": {
+    "php": ">=7.0",
+    "illuminate/support": "~5.0"
+  },
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "Sztyup\\Authsch\\": "src/"
+    }
+  }
+}
