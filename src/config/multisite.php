@@ -28,13 +28,13 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Site model
+    | Site model repository
     |--------------------------------------------------------------------------
     |
-    | The Database model which stores the individual sites configuration
+    | The repository class which
     |
     */
-    'model' => 'App\Models\Site',
+    'model_repository' => 'App\Models\Site',
 
     /*
     |--------------------------------------------------------------------------
@@ -62,7 +62,15 @@ return [
         'assets' => storage_path('assets')
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Views
+    |--------------------------------------------------------------------------
+    |
+    | Here you can override the default views
+    |
+    */
     'views' => [
-        'auth_waiting' => 'multisite:auth_redirect'
+        'auth_waiting' => 'multisite:auth.redirect'
     ]
 ];
