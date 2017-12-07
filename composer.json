@@ -15,7 +15,10 @@
   "autoload": {
     "psr-4": {
       "Sztyup\\Multisite\\": "src/"
-    }
+    },
+    "files": [
+      "src/helper.php"
+    ]
   },
   "extra": {
     "laravel": {
