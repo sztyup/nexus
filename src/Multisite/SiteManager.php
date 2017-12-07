@@ -96,7 +96,7 @@ class SiteManager
         });
     }
 
-    public function current(): Site
+    public function current()
     {
         if($this->isConsole()) {
             return null;
