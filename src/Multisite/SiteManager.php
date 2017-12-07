@@ -68,14 +68,14 @@ class SiteManager
         return $currentSite;
     }
 
-    protected function loadSitesFromRepo(Container $container): null
+    protected function loadSitesFromRepo(Container $container)
     {
         /** @var SiteRepositoryContract $model */
-        $repository = $this->config->get('model_repository');
+        $repository = $this->config['model_repository'];
 
         $reflection = new \ReflectionClass($repository);
         if(!$reflection->implementsInterface(SiteRepositoryContract::class)) {
-            throw new \Exception('Configured site model does not extend SiteModelContract');
+            throw new \Exception('Configured repository does not extend SiteRepositoryContract');
         }
 
         /** @var SiteModelContract $siteModel */

@@ -94,6 +94,11 @@ class Site
         return $this->siteModel->getId();
     }
 
+    public function getDomain(): string
+    {
+        return $this->siteModel->getDomain();
+    }
+
     public function getTrackerId(): string
     {
         return $this->siteModel->getTagManagerId() ?? '';

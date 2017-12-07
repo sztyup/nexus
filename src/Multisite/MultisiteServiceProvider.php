@@ -58,7 +58,7 @@ class MultisiteServiceProvider extends ServiceProvider
         $this->app->singleton(StartSession::class);
 
         $this->mergeConfigFrom(
-            __DIR__.'/../config/multisite.php', 'courier'
+            __DIR__.'/../config/multisite.php', 'multisite'
         );
 
     }
