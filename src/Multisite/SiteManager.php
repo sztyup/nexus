@@ -52,7 +52,7 @@ class SiteManager
         $this->determineCurrentSite();
     }
 
-    protected function determineCurrentSite(): Site
+    protected function determineCurrentSite()
     {
         if($this->isConsole()) {
             return null;
