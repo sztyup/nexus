@@ -16,6 +16,13 @@ use Exception;
 class Site
 {
     /**
+     * The ID of the site as represented in the DB
+     *
+     * @var  int
+     */
+    protected $id;
+
+    /**
      * View service
      *
      * @var View
@@ -52,6 +59,8 @@ class Site
 
     /**
      * The model for the Site we are currently in
+     *
+     * @var SiteModelContract
      */
     protected $siteModel;
 
@@ -63,10 +72,9 @@ class Site
      * @param UrlGenerator $urlGenerator
      * @param HtmlBuilder $builder
      * @param Request $request
-     * @param mixed $site
-     * @internal param \Illuminate\Foundation\Application $app
+     * @param SiteModelContract $site
      */
-    public function __construct(Factory $view, Registrar $registrar, UrlGenerator $urlGenerator, HtmlBuilder $builder, Request $request, $site)
+    public function __construct(Factory $view, Registrar $registrar, UrlGenerator $urlGenerator, HtmlBuilder $builder, Request $request, SiteModelContract $site)
     {
         $this->view = $view;
         $this->registrar = $registrar;
@@ -74,6 +82,8 @@ class Site
         $this->html = $builder;
         $this->request = $request;
         $this->siteModel = $site;
+
+        $this->id = $site->getId();
     }
 
     /*
@@ -81,32 +91,22 @@ class Site
      */
     public function getId(): int
     {
-        return $this->siteModel->id;
-    }
-
-    public function getName(): string
-    {
-        return $this->siteModel->slug;
-    }
-
-    public function getDomain(): string
-    {
-        return $this->siteModel->domain;
+        return $this->siteModel->getId();
     }
 
     public function getTrackerId(): string
     {
-        return $this->siteModel->tracker_id ?? '';
+        return $this->siteModel->getTagManagerId() ?? '';
     }
 
     public function getRedirect(): string
     {
-        return $this->siteModel->redirect ?? '';
+        return $this->siteModel->getRedirect() ?? '';
     }
 
     public function isEnabled(): bool
     {
-        return $this->siteModel->enabled;
+        return $this->siteModel->isEnabled();
     }
 
     /*
@@ -114,7 +114,7 @@ class Site
      */
     public function getSlug()
     {
-        return Str::lower($this->getName());
+        return Str::lower($this->siteModel->getName());
     }
 
     public function getSiteSpecificRoute($route): string
@@ -144,7 +144,7 @@ class Site
 
     public function getNameSpace(): string
     {
-        return $this->getName();
+        return $this->siteModel->getName();
     }
 
     public function getRoutesFile(): string
@@ -183,10 +183,9 @@ class Site
     public function route($route, $parameters = [], $absolute = true): string
     {
         if ($this->hasRoute($route)) {
-            return $this->urlGenerator->route($this->getSiteSpecificRoute($route), $parameters, $absolute);
-        } else {
-            return $this->urlGenerator->route($route, $parameters, $absolute);
+            $route = $this->getSiteSpecificRoute($route);
         }
+        return $this->urlGenerator->route($route, $parameters, $absolute);
     }
 
     /**
@@ -200,10 +199,9 @@ class Site
     public function view($view, $data = [], $mergeData = []): View
     {
         if ($this->view->exists($this->getSiteSpecificView($view))) {
-            return $this->view->make($this->getSiteSpecificView($view), $data, $mergeData);
-        } else {
-            return $this->view->make($view, $data, $mergeData);
+            $view = $this->getSiteSpecificView($view);
         }
+        return $this->view->make($view, $data, $mergeData);
     }
 
     /**
@@ -253,17 +251,5 @@ class Site
     public function js(): HtmlString
     {
         return $this->html->script($this->mix($this->getViewPrefix() . "/js/app.js"));
-    }
-
-    /*
-     * Getters
-     */
-
-    public function __get($name)
-    {
-        if($name == "id") {
-            return $this->getId();
-        }
-        return null;
     }
 }

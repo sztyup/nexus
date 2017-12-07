@@ -6,23 +6,14 @@ use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Encryption\Encrypter;
 use Illuminate\Contracts\Routing\UrlGenerator;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Schema\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
-use Schema;
 use Sztyup\Multisite\Exceptions\SiteNotFoundException;
 
 class SiteManager
 {
-    /** @var Collection */
-    protected $sites;
-
-    /** @var  int */
-    protected $currentId;
-
     /** @var Request */
     protected $request;
 
@@ -38,37 +29,61 @@ class SiteManager
     /** @var  Repository */
     protected $config;
 
+
+    /** @var Collection */
+    protected $sites;
+
+    /** @var  int */
+    protected $currentId;
+
+    /** @var   */
+    protected $manifest;
+
     public function __construct(Container $container)
     {
         $this->sites = new Collection();
         $this->request = $container->make(Request::class);
-        $this->viewFactory = $container->make(\Illuminate\Contracts\View\Factory::class);
+        $this->viewFactory = $container->make(Factory::class);
         $this->urlGenerator = $container->make(UrlGenerator::class);
         $this->encrypter =  $container->make(Encrypter::class);
-        $this->config = $container->make(Repository::class)->get('site');
+        $this->config = $container->make(Repository::class)->get('multisite');
 
-        /** @var object $model */
-        $model = config('multisite.model');
+        $this->loadSitesFromRepo($container);
+        $this->determineCurrentSite();
+    }
 
-        $reflection = new \ReflectionClass($model);
-        if(!$reflection->isSubclassOf(Model::class)) {
-            throw new \Exception('Configured site model is not a Model');
+    protected function determineCurrentSite(): Site
+    {
+        if($this->isConsole()) {
+            return null;
         }
 
-        foreach($model::all() as $siteModel) {
+        $currentSite = $this->getByDomain($host = $this->request->getHost());
+        if($currentSite == null) {
+            throw new SiteNotFoundException($host);
+        }
+
+        $this->currentId = $currentSite->getId();
+
+        return $currentSite;
+    }
+
+    protected function loadSitesFromRepo(Container $container): null
+    {
+        /** @var SiteRepositoryContract $model */
+        $repository = $this->config->get('model_repository');
+
+        $reflection = new \ReflectionClass($repository);
+        if(!$reflection->implementsInterface(SiteRepositoryContract::class)) {
+            throw new \Exception('Configured site model does not extend SiteModelContract');
+        }
+
+        /** @var SiteModelContract $siteModel */
+        foreach($repository->getAll() as $siteModel) {
             $this->sites->put(
-                $siteModel->id,
+                $siteModel->getId(),
                 $container->make(Site::class, ['site' => $siteModel])
             );
-        }
-
-        if(!$this->isConsole()) {
-            $currentSite = $this->getByDomain($this->request->getHost());
-            if($currentSite == null) {
-                throw new SiteNotFoundException($this->request->getHost());
-            }
-
-            $this->currentId = $currentSite->getId();
         }
     }
 
@@ -129,7 +144,7 @@ class SiteManager
     {
         $session = $this->request->session();
 
-        $target = '//' . $this->getById( $session->get('origin.site') )->getDomain() . $session->get('origin.uri');
+        $intended = '//' . $this->getById( $session->get('origin.site') )->getDomain() . $session->get('origin.uri');
 
         return $this->viewFactory->make('main.auth.redirect', [
             'sites' => $this
@@ -141,11 +156,11 @@ class SiteManager
                 })
                 ->pluck('id'),
             'code' => $this->encrypter->encrypt($session->getId()),
-            'target' => $target
+            'intended' => $intended
         ]);
     }
 
-    private function isConsole()
+    private function isConsole(): bool
     {
         return php_sapi_name() == 'cli' || php_sapi_name() == 'phpdbg';
     }
