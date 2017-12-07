@@ -78,6 +78,8 @@ class SiteManager
             throw new \Exception('Configured repository does not extend SiteRepositoryContract');
         }
 
+        $repository = $container->make($repository);
+
         /** @var SiteModelContract $siteModel */
         foreach($repository->getAll() as $siteModel) {
             $this->sites->put(
