@@ -22,6 +22,12 @@ class NexusServiceProvider extends ServiceProvider
                 InitializeCommand::class,
             ]);
         }
+
+        /** @var SiteManager $manager */
+        $manager = $this->app->make(SiteManager::class);
+
+        // Register all routes for the sites
+        $manager->registerRoutes();
     }
 
     protected function bladeDirectives()
@@ -49,6 +55,5 @@ class NexusServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__.'/../config/nexus.php', 'nexus'
         );
-
     }
 }
