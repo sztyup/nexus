@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\Factory;
 use Sztyup\Nexus\Exceptions\SiteNotFoundException;
+use Sztyup\Nexus\Middleware\InjectCrossDomainLogin;
+use Sztyup\Nexus\Middleware\StartSession;
 
 class SiteManager
 {
@@ -92,7 +94,7 @@ class SiteManager
          * and independent of the sites table, and much else
          */
         $this->registrar->group([
-            'middleware' => ['web'],
+            'middleware' => ['web', StartSession::class, InjectCrossDomainLogin::class],
             'domain' => config('sites.main_domain', 'example.com'),
             'as' => 'main.',
             'namespace' => $this->config['route_namespace'] . '\\Main'
@@ -107,15 +109,13 @@ class SiteManager
         $this->registrar->get('css/{path}', 'Sztyup\Nexus\Controllers\ResourceController@css')->where('path', '.*')->name('resource.css');
 
         $this->registrar->group([
-            'middleware' => ['web'],
+            'middleware' => ['web', StartSession::class, InjectCrossDomainLogin::class],
             'namespace' => $this->config['route_namespace']
         ], function() {
+            /* Global routes applied to each site */
             include base_path('routes/global.php');
 
-            /*
-             * Register each site's route
-             */
-            /** @var Site $site */
+            /* Register each site's route */
             foreach ($this->all() as $site) {
                 $site->registerRoutes();
             }
