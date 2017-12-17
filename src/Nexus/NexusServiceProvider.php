@@ -30,6 +30,8 @@ class NexusServiceProvider extends ServiceProvider
 
         // Register all routes for the sites
         $manager->registerRoutes();
+
+        $this->app->make('view')->share('site', $manager->current());
     }
 
     protected function bladeDirectives()
