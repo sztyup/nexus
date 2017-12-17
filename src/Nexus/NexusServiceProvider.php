@@ -2,7 +2,9 @@
 
 namespace Sztyup\Nexus;
 
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Foundation\Application;
+use Illuminate\Session\SessionManager;
 use Illuminate\Support\ServiceProvider;
 use Sztyup\Nexus\Commands\InitializeCommand;
 use Sztyup\Nexus\Middleware\StartSession;
@@ -59,6 +61,14 @@ class NexusServiceProvider extends ServiceProvider
 
     protected function registerSession()
     {
+        $this->app->singleton('session', function ($app) {
+            return new SessionManager($app);
+        });
+
+        $this->app->singleton('session.store', function (Container $app) {
+            return $app->make('session')->driver();
+        });
+
         $this->app->singleton(StartSession::class);
     }
 }
