@@ -1,6 +1,6 @@
 <?php
 
-namespace Sztyup\Multisite;
+namespace Sztyup\Nexus;
 
 interface SiteModelContract
 {

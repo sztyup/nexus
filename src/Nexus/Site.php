@@ -1,13 +1,12 @@
 <?php
 
-namespace Sztyup\Multisite;
+namespace Sztyup\Nexus;
 
 use Collective\Html\HtmlBuilder;
 use Illuminate\Contracts\Routing\Registrar;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -20,7 +19,35 @@ class Site
      *
      * @var  int
      */
-    protected $id;
+    private $id;
+
+    /**
+     * The name of the site as represented in the code
+     *
+     * @var string
+     */
+    private $name;
+
+    /**
+     * The domain where we accept requests for the site
+     *
+     * @var string
+     */
+    private $domain;
+
+    /**
+     * The site where we should direct all requests
+     *
+     * @var string
+     */
+    private $redirect;
+
+    /**
+     * Whether we are enabled
+     *
+     * @var bool
+     */
+    private $enabled;
 
     /**
      * View service
@@ -51,67 +78,54 @@ class Site
     protected $html;
 
     /**
-     * The current request object
-     *
-     * @var Request
-     */
-    protected $request;
-
-    /**
-     * The model for the Site we are currently in
-     *
-     * @var SiteModelContract
-     */
-    protected $siteModel;
-
-    /**
      * Create a new site instance.
      *
      * @param Factory $view
      * @param Registrar $registrar
      * @param UrlGenerator $urlGenerator
      * @param HtmlBuilder $builder
-     * @param Request $request
      * @param SiteModelContract $site
      */
-    public function __construct(Factory $view, Registrar $registrar, UrlGenerator $urlGenerator, HtmlBuilder $builder, Request $request, SiteModelContract $site)
+    public function __construct(Factory $view, Registrar $registrar, UrlGenerator $urlGenerator, HtmlBuilder $builder, SiteModelContract $site)
     {
         $this->view = $view;
         $this->registrar = $registrar;
         $this->urlGenerator = $urlGenerator;
         $this->html = $builder;
-        $this->request = $request;
-        $this->siteModel = $site;
 
         $this->id = $site->getId();
+        $this->name = $site->getName();
+        $this->domain = $site->getDomain();
+        $this->redirect = $site->getRedirect();
+        $this->enabled = $site->isEnabled();
     }
 
     /*
-     * Model abstractors
+     * Getters
      */
     public function getId(): int
     {
-        return $this->siteModel->getId();
+        return $this->id;
+    }
+
+    public function getName()
+    {
+        return $this->name;
     }
 
     public function getDomain(): string
     {
-        return $this->siteModel->getDomain();
-    }
-
-    public function getTrackerId(): string
-    {
-        return $this->siteModel->getTagManagerId() ?? '';
+        return $this->domain;
     }
 
     public function getRedirect(): string
     {
-        return $this->siteModel->getRedirect() ?? '';
+        return $this->redirect;
     }
 
     public function isEnabled(): bool
     {
-        return $this->siteModel->isEnabled();
+        return $this->enabled;
     }
 
     /*
@@ -119,7 +133,7 @@ class Site
      */
     public function getSlug()
     {
-        return Str::lower($this->siteModel->getName());
+        return Str::lower($this->getName());
     }
 
     public function getSiteSpecificRoute($route): string
@@ -149,12 +163,12 @@ class Site
 
     public function getNameSpace(): string
     {
-        return $this->siteModel->getName();
+        return $this->getName();
     }
 
     public function getRoutesFile(): string
     {
-        return config('multisite.directories.routes') . DIRECTORY_SEPARATOR . $this->getRoutePrefix() . ".php";
+        return config('nexus.directories.routes') . DIRECTORY_SEPARATOR . $this->getRoutePrefix() . ".php";
     }
 
     /*
@@ -226,7 +240,7 @@ class Site
 
     private function mix($path): HtmlString
     {
-        $manifestFile = config('multisite.directories.assets') . DIRECTORY_SEPARATOR . 'mix-manifest.json';
+        $manifestFile = config('nexus.directories.assets') . DIRECTORY_SEPARATOR . 'mix-manifest.json';
         if (! file_exists($manifestFile)) {
             throw new Exception('The Mix manifest does not exist.');
         }

@@ -1,16 +1,14 @@
 <?php
 
-namespace Sztyup\Multisite;
+namespace Sztyup\Nexus;
 
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
-use Illuminate\Contracts\Encryption\Encrypter;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\Factory;
-use Illuminate\Contracts\View\View;
-use Sztyup\Multisite\Exceptions\SiteNotFoundException;
+use Sztyup\Nexus\Exceptions\SiteNotFoundException;
 
 class SiteManager
 {
@@ -23,9 +21,6 @@ class SiteManager
     /** @var UrlGenerator */
     protected $urlGenerator;
 
-    /** @var Encrypter */
-    protected $encrypter;
-
     /** @var  Repository */
     protected $config;
 
@@ -34,10 +29,7 @@ class SiteManager
     protected $sites;
 
     /** @var  int */
-    protected $currentId;
-
-    /** @var   */
-    protected $manifest;
+    private $currentId;
 
     public function __construct(Container $container)
     {
@@ -45,8 +37,7 @@ class SiteManager
         $this->request = $container->make(Request::class);
         $this->viewFactory = $container->make(Factory::class);
         $this->urlGenerator = $container->make(UrlGenerator::class);
-        $this->encrypter =  $container->make(Encrypter::class);
-        $this->config = $container->make(Repository::class)->get('multisite');
+        $this->config = $container->make(Repository::class)->get('nexus');
 
         $this->loadSitesFromRepo($container);
         $this->determineCurrentSite();
@@ -120,6 +111,9 @@ class SiteManager
         return $this->sites->get($id);
     }
 
+    /**
+     * @return Collection|Site[]
+     */
     public function all(): Collection
     {
         return $this->sites;
@@ -139,26 +133,6 @@ class SiteManager
 
         return $this->urlGenerator->route("main.auth", [
             "data" => $data,
-        ]);
-    }
-
-    public function redirectPage(): View
-    {
-        $session = $this->request->session();
-
-        $intended = '//' . $this->getById( $session->get('origin.site') )->getDomain() . $session->get('origin.uri');
-
-        return $this->viewFactory->make('main.auth.redirect', [
-            'sites' => $this
-                ->sites
-                ->filter(function(Site $site) {
-                    return
-                        $site->getId() != $this->currentId &&
-                        $site->isEnabled();
-                })
-                ->pluck('id'),
-            'code' => $this->encrypter->encrypt($session->getId()),
-            'intended' => $intended
         ]);
     }
 

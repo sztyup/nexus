@@ -1,6 +1,6 @@
 <?php
 
-namespace Sztyup\Multisite\Exceptions;
+namespace Sztyup\Nexus\Exceptions;
 
 use Exception;
 use Throwable;

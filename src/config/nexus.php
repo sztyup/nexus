@@ -20,7 +20,7 @@ return [
     | Sites
     |--------------------------------------------------------------------------
     |
-    | Here are the sites with some settings regarding blogs and auth system
+    | Here are the sites
     |
     */
     'sites' => [
@@ -71,6 +71,6 @@ return [
     |
     */
     'views' => [
-        'auth_waiting' => 'multisite:auth.redirect'
+        'auth_waiting' => 'nexus:auth.redirect'
     ]
 ];

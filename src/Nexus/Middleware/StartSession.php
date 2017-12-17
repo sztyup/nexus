@@ -1,6 +1,6 @@
 <?php
 
-namespace Sztyup\Multisite\Middleware;
+namespace Sztyup\Nexus\Middleware;
 
 use Illuminate\Contracts\Encryption\Encrypter;
 use Illuminate\Contracts\Session\Session;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Sztyup\Multisite\Exceptions;
+namespace Sztyup\Nexus\Exceptions;
 
 class SiteNotFoundException extends MultiSiteException
 {
