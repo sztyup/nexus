@@ -4,11 +4,11 @@ namespace Sztyup\Nexus\Middleware;
 
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Encryption\Encrypter;
+use Illuminate\Contracts\Session\Session;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Sztyup\Nexus\SiteManager;
 use Closure;
 
@@ -53,7 +53,7 @@ class InjectCrossDomainLogin
         return $response;
     }
 
-    protected function getInjectedCode(SessionInterface $session): string
+    protected function getInjectedCode(Session $session): string
     {
         return $this->viewFactory->make('nexus:cdimages', [
             'sites' => $this->siteManager->all(),
