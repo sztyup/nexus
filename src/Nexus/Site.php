@@ -234,6 +234,36 @@ class Site
         return $this->registrar->has($this->getSiteSpecificRoute($route));
     }
 
+    public function registerRoutes()
+    {
+        $this->registrar->group([
+            'domain' => $this->getDomain(),
+            'as' => $this->getRoutePrefix() . ".",
+            'namespace' => $this->getNameSpace()
+        ], function () {
+            if ($this->hasRoutes()) {
+                /*
+                 * Route returning empty response, needed for the cross-domain login.
+                 * Used by the cross domain redirect page, where it includes this route as an image
+                 * for all domain and a middleware uses the encrypted session_id as its own session id
+                 */
+                $this->registrar->get('auth/internal', function () {
+                    return response('');
+                })->name('auth.internal');
+
+                /*
+                 * Include the actual route file for the site
+                 */
+                include $this->getRoutesFile();
+            } else {
+                /*
+                 * If the site is not operational by any reason, all routes catched by a central 503 response
+                 */
+                $this->registrar->get('{all?}', 'Main\MainController@disabled')->where('all', '.*');
+            }
+        });
+    }
+
     /*
      * Assets
      */
