@@ -21,31 +21,23 @@ class ResourceController extends Controller
         $this->filesystem = $filesystem;
     }
 
-    private function imageExtensionChecker($path)
-    {
-        if($this->filesystem->exists($path)) {
-            return $path;
-        }
-
-        return null;
-    }
     public function image($path)
     {
         $file = resource_path("sites" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
 
-        if(($file = $this->imageExtensionChecker($file)) != null) {
+        if($this->filesystem->exists($file)) {
             return $this->response($file);
         }
 
         $file = storage_path("app" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
 
-        if(($file = $this->imageExtensionChecker($file)) != null) {
+        if($this->filesystem->exists($file)) {
             return $this->response($file);
         }
 
         $file = storage_path("assets" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
 
-        if(($file = $this->imageExtensionChecker($file)) != null) {
+        if($this->filesystem->exists($file)) {
             return $this->response($file);
         }
 
@@ -67,16 +59,16 @@ class ResourceController extends Controller
     private function asset($path, $mime = "text/plain")
     {
         $file = storage_path("assets" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . $path);
-
         if($this->filesystem->exists($file)) {
-            $file = storage_path("assets" . DIRECTORY_SEPARATOR . $path);
-
-            if(!$this->filesystem->exists($file)) {
-                abort(404);
-            }
+            return $this->response($file, $mime);
         }
 
-        return $this->response($file, $mime);
+        $file = storage_path("assets" . DIRECTORY_SEPARATOR . $path);
+        if($this->filesystem->exists($file)) {
+            return $this->response($file, $mime);
+        }
+
+        return new Response('', 404);
     }
 
     private function response($data, $mime = null, $name = null, $statusCode = 200)
