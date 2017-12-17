@@ -1,8 +1,8 @@
 <?php
 
-use Sztyup\Multisite\SiteManager;
+use Sztyup\Nexus\SiteManager;
 
-function multisite(): SiteManager
+function nexus(): SiteManager
 {
-    return app('multisite');
+    return app('nexus');
 }
