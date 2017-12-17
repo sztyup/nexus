@@ -1,5 +1,5 @@
 {
-  "name": "sztyup/multisite",
+  "name": "sztyup/nexus",
   "description": "Multisite plugin for Laravel 5",
   "license": "MIT",
   "authors": [{
@@ -14,7 +14,7 @@
   "minimum-stability": "stable",
   "autoload": {
     "psr-4": {
-      "Sztyup\\Multisite\\": "src/Multisite"
+      "Sztyup\\Nexus\\": "src/Nexus"
     },
     "files": [
       "src/helper.php"
@@ -23,7 +23,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Sztyup\\Multisite\\MultisiteServiceProvider"
+        "Sztyup\\Nexus\\NexusServiceProvider"
       ]
     }
   }
