@@ -50,10 +50,15 @@ class NexusServiceProvider extends ServiceProvider
 
         $this->app->alias('nexus', SiteManager::class);
 
-        $this->app->singleton(StartSession::class);
-
         $this->mergeConfigFrom(
             __DIR__.'/../config/nexus.php', 'nexus'
         );
+
+        $this->registerSession();
+    }
+
+    protected function registerSession()
+    {
+        $this->app->singleton(StartSession::class);
     }
 }
