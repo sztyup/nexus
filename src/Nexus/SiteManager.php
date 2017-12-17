@@ -94,7 +94,7 @@ class SiteManager
          * and independent of the sites table, and much else
          */
         $this->registrar->group([
-            'middleware' => ['web', StartSession::class, InjectCrossDomainLogin::class],
+            'middleware' => [StartSession::class, InjectCrossDomainLogin::class, 'web'],
             'domain' => config('sites.main_domain', 'example.com'),
             'as' => 'main.',
             'namespace' => $this->config['route_namespace'] . '\\Main'
@@ -109,7 +109,7 @@ class SiteManager
         $this->registrar->get('css/{path}', 'Sztyup\Nexus\Controllers\ResourceController@css')->where('path', '.*')->name('resource.css');
 
         $this->registrar->group([
-            'middleware' => ['web', StartSession::class, InjectCrossDomainLogin::class],
+            'middleware' => [StartSession::class, InjectCrossDomainLogin::class, 'web'],
             'namespace' => $this->config['route_namespace']
         ], function() {
             /* Global routes applied to each site */
