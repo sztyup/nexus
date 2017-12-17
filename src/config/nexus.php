@@ -17,6 +17,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Router namespace
+    |--------------------------------------------------------------------------
+    |
+    | Here you should define the namespace where all your controllers are, so
+    | your route files dont need the include this in all routes
+    |
+    */
+    'route_namespace' => 'App\Http\Controllers',
+
+    /*
+    |--------------------------------------------------------------------------
     | Sites
     |--------------------------------------------------------------------------
     |
@@ -71,6 +82,5 @@ return [
     |
     */
     'views' => [
-        'auth_waiting' => 'nexus:auth.redirect'
     ]
 ];
