@@ -95,10 +95,10 @@ class SiteManager
          */
         $this->registrar->group([
             'middleware' => [StartSession::class, InjectCrossDomainLogin::class, 'web'],
-            'domain' => config('sites.main_domain', 'example.com'),
+            'domain' => $this->config['main_domain'],
             'as' => 'main.',
             'namespace' => $this->config['route_namespace'] . '\\Main'
-        ], base_path('routes/main.php'));
+        ], $this->config['directories']['routes'] . DIRECTORY_SEPARATOR . 'main.php');
 
         /*
         * Resource routes, to handle resources for each site
@@ -113,7 +113,7 @@ class SiteManager
             'namespace' => $this->config['route_namespace']
         ], function() {
             /* Global routes applied to each site */
-            include base_path('routes/global.php');
+            include $this->config['directories']['routes'] . DIRECTORY_SEPARATOR . 'global.php';
 
             /* Register each site's route */
             foreach ($this->all() as $site) {
