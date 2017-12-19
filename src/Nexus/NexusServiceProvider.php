@@ -37,11 +37,11 @@ class NexusServiceProvider extends ServiceProvider
     protected function bladeDirectives()
     {
         // @route blade funcion, for site specific routes
-        \Blade::directive("route", function($expression) {
+        \Blade::directive("route", function ($expression) {
             return "<?php echo site()->route($expression); ?>";
         });
 
-        \Blade::directive("resource", function() {
+        \Blade::directive("resource", function () {
             return "<?php echo  ?>";
         });
     }
@@ -55,7 +55,8 @@ class NexusServiceProvider extends ServiceProvider
         $this->app->alias('nexus', SiteManager::class);
 
         $this->mergeConfigFrom(
-            __DIR__.'/../config/nexus.php', 'nexus'
+            __DIR__.'/../config/nexus.php',
+            'nexus'
         );
 
         $this->registerSession();

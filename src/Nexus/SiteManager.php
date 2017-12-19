@@ -52,12 +52,12 @@ class SiteManager
 
     protected function determineCurrentSite()
     {
-        if($this->isConsole()) {
+        if ($this->isConsole()) {
             return null;
         }
 
         $currentSite = $this->getByDomain($host = $this->request->getHost());
-        if($currentSite == null) {
+        if ($currentSite == null) {
             throw new SiteNotFoundException($host);
         }
 
@@ -71,7 +71,7 @@ class SiteManager
         $repositoryClass = $this->config['model_repository'];
 
         $reflection = new \ReflectionClass($repositoryClass);
-        if(!$reflection->implementsInterface(SiteRepositoryContract::class)) {
+        if (!$reflection->implementsInterface(SiteRepositoryContract::class)) {
             throw new \Exception('Configured repository does not implement SiteRepositoryContract');
         }
 
@@ -79,7 +79,7 @@ class SiteManager
         $repository= $container->make($repositoryClass);
 
         /** @var SiteModelContract $siteModel */
-        foreach($repository->getAll() as $siteModel) {
+        foreach ($repository->getAll() as $siteModel) {
             $this->sites->put(
                 $siteModel->getId(),
                 $container->make(Site::class, ['site' => $siteModel])
@@ -111,7 +111,7 @@ class SiteManager
         $this->registrar->group([
             'middleware' => [StartSession::class, InjectCrossDomainLogin::class, 'web'],
             'namespace' => $this->config['route_namespace']
-        ], function() {
+        ], function () {
             /* Global routes applied to each site */
             include $this->config['directories']['routes'] . DIRECTORY_SEPARATOR . 'global.php';
 
@@ -124,14 +124,14 @@ class SiteManager
 
     protected function findBy($field, $value): Collection
     {
-        return $this->sites->filter(function(Site $site) use ($field, $value) {
+        return $this->sites->filter(function (Site $site) use ($field, $value) {
             return $site->{"get" . ucfirst($field)}() == $value;
         });
     }
 
     public function current()
     {
-        if($this->isConsole()) {
+        if ($this->isConsole()) {
             return null;
         }
 
@@ -195,15 +195,14 @@ class SiteManager
         /*
          * If running in console then we dont have a current site
          */
-        if($this->isConsole()) {
+        if ($this->isConsole()) {
             return null;
         }
 
-        if(method_exists($this->current(), $name)) {
+        if (method_exists($this->current(), $name)) {
             return $this->current()->{$name}(...$arguments);
         }
 
         throw new \BadMethodCallException('Method[' . $name . '] does not exists on Site');
     }
-
 }

@@ -25,19 +25,19 @@ class ResourceController extends Controller
     {
         $file = resource_path("sites" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
 
-        if($this->filesystem->exists($file)) {
+        if ($this->filesystem->exists($file)) {
             return $this->response($file);
         }
 
         $file = storage_path("app" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
 
-        if($this->filesystem->exists($file)) {
+        if ($this->filesystem->exists($file)) {
             return $this->response($file);
         }
 
         $file = storage_path("assets" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
 
-        if($this->filesystem->exists($file)) {
+        if ($this->filesystem->exists($file)) {
             return $this->response($file);
         }
 
@@ -59,12 +59,12 @@ class ResourceController extends Controller
     private function asset($path, $mime = "text/plain")
     {
         $file = storage_path("assets" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . $path);
-        if($this->filesystem->exists($file)) {
+        if ($this->filesystem->exists($file)) {
             return $this->response($file, $mime);
         }
 
         $file = storage_path("assets" . DIRECTORY_SEPARATOR . $path);
-        if($this->filesystem->exists($file)) {
+        if ($this->filesystem->exists($file)) {
             return $this->response($file, $mime);
         }
 
@@ -73,10 +73,10 @@ class ResourceController extends Controller
 
     private function response($data, $mime = null, $name = null, $statusCode = 200)
     {
-        if($mime == null) {
+        if ($mime == null) {
             $mime = $this->filesystem->mimeType($data);
         }
-        if($name == null) {
+        if ($name == null) {
             $name = Arr::last(explode(DIRECTORY_SEPARATOR, $data));
 
             $data = $this->filesystem->get($data);

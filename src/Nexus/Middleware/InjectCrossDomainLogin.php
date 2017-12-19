@@ -36,12 +36,12 @@ class InjectCrossDomainLogin
         $response = $next($request);
 
         // Only inject if authenticated
-        if($this->guard->guest()) {
+        if ($this->guard->guest()) {
             return $response;
         }
 
         // Only inject html responses
-        if(!Str::contains($response->headers->get('Content-Type'), 'html')) {
+        if (!Str::contains($response->headers->get('Content-Type'), 'html')) {
             return $response;
         }
 

@@ -182,11 +182,13 @@ class Site
      */
     public function hasRoutes(): bool
     {
-        if (!$this->isEnabled())
+        if (!$this->isEnabled()) {
             return false;
+        }
 
-        if (!file_exists($this->getRoutesFile()))
+        if (!file_exists($this->getRoutesFile())) {
             return false;
+        }
 
         return true;
     }
@@ -275,9 +277,7 @@ class Site
             throw new Exception('The Mix manifest does not exist.');
         }
 
-        $manifest = json_decode(
-            file_get_contents($manifestFile), true
-        );
+        $manifest = json_decode(file_get_contents($manifestFile), true);
 
         if (! starts_with($path, DIRECTORY_SEPARATOR)) {
             $path = DIRECTORY_SEPARATOR . $path;

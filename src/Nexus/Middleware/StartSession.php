@@ -30,12 +30,11 @@ class StartSession extends Base
         /** @var Session $session */
         $session = $this->manager->driver();
 
-        if($request->has("s_code")) {
+        if ($request->has("s_code")) {
             $session->setId(
                 $this->encrypter->decrypt($request->get("s_code"))
             );
-        }
-        else {
+        } else {
             $session->setId(
                 $request->cookies->get(
                     $session->getName()
@@ -45,5 +44,4 @@ class StartSession extends Base
 
         return $session;
     }
-
 }
