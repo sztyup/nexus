@@ -62,5 +62,4 @@ class InitializeCommand extends Command
             'sites' => $sites
         ]);
     }
-
 }
