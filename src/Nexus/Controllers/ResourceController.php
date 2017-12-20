@@ -2,17 +2,20 @@
 
 namespace Sztyup\Nexus\Controllers;
 
-use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Sztyup\Nexus\Site;
 use Sztyup\Nexus\SiteManager;
 
 class ResourceController extends Controller
 {
+    /** @var Site */
     private $site;
 
+    /** @var Filesystem */
     private $filesystem;
 
     public function __construct(SiteManager $siteManager, Filesystem $filesystem)
