@@ -7,6 +7,7 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Routing\Registrar;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\Factory;
 use Sztyup\Nexus\Exceptions\SiteNotFoundException;
@@ -27,8 +28,8 @@ class SiteManager
     /** @var  Repository */
     protected $config;
 
-    /** @var  Registrar */
-    protected $registrar;
+    /** @var  Router */
+    protected $router;
 
 
     /** @var Collection */
@@ -43,7 +44,7 @@ class SiteManager
         $this->request = $container->make(Request::class);
         $this->viewFactory = $container->make(Factory::class);
         $this->urlGenerator = $container->make(UrlGenerator::class);
-        $this->registrar = $container->make(Registrar::class);
+        $this->router = $container->make(Router::class);
         $this->config = $container->make(Repository::class)->get('nexus');
 
         $this->loadSitesFromRepo($container);
@@ -93,7 +94,7 @@ class SiteManager
          * Main domain, where the central authentication takes place, can be moved by enviroment,
          * and independent of the sites table, and much else
          */
-        $this->registrar->group([
+        $this->router->group([
             'middleware' => [StartSession::class, InjectCrossDomainLogin::class, 'web'],
             'domain' => $this->config['main_domain'],
             'as' => 'main.',
@@ -104,11 +105,32 @@ class SiteManager
         * Resource routes, to handle resources for each site
         * Its needed to avoid eg. golya.sch.bme.hu/js/golya/app.js, instead we can use golya.sch.bme.hu/js/app.js
         */
-        $this->registrar->get('img/{path}', 'Sztyup\Nexus\Controllers\ResourceController@image')->where('path', '.*')->name('resource.img');
-        $this->registrar->get('js/{path}', 'Sztyup\Nexus\Controllers\ResourceController@js')->where('path', '.*')->name('resource.js');
-        $this->registrar->get('css/{path}', 'Sztyup\Nexus\Controllers\ResourceController@css')->where('path', '.*')->name('resource.css');
+        $this->router->get(
+            'img/{path}',
+            [
+                'uses' => 'Sztyup\Nexus\Controllers\ResourceController@image',
+                'as' => 'resource.img',
+                'where' => ['path' => '.*']
+            ]
+        );
+        $this->router->get(
+            'js/{path}',
+            [
+                'uses' => 'Sztyup\Nexus\Controllers\ResourceController@js',
+                'as' => 'resource.js',
+                'where' => ['path' => '.*']
+            ]
+        );
+        $this->router->get(
+            'css/{path}',
+            [
+                'uses' => 'Sztyup\Nexus\Controllers\ResourceController@css',
+                'as' => 'resource.css',
+                'where' => ['path' => '.*']
+            ]
+        );
 
-        $this->registrar->group([
+        $this->router->group([
             'middleware' => [StartSession::class, InjectCrossDomainLogin::class, 'web'],
             'namespace' => $this->config['route_namespace']
         ], function () {
@@ -120,6 +142,9 @@ class SiteManager
                 $site->registerRoutes();
             }
         });
+
+        $this->router->getRoutes()->refreshActionLookups();
+        $this->router->getRoutes()->refreshNameLookups();
     }
 
     protected function findBy($field, $value): Collection
