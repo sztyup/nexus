@@ -71,14 +71,17 @@ class SiteManager
     {
         $repositoryClass = $this->config['model_repository'];
 
+        // Check if it implements required Contract
         $reflection = new \ReflectionClass($repositoryClass);
         if (!$reflection->implementsInterface(SiteRepositoryContract::class)) {
             throw new \Exception('Configured repository does not implement SiteRepositoryContract');
         }
 
+        // Instantiate repo
         /** @var SiteRepositoryContract $repository */
         $repository= $container->make($repositoryClass);
 
+        // Add each of the sites to the collection
         /** @var SiteModelContract $siteModel */
         foreach ($repository->getAll() as $siteModel) {
             $this->sites->put(
@@ -95,7 +98,7 @@ class SiteManager
          * and independent of the sites table, and much else
          */
         $this->router->group([
-            'middleware' => [StartSession::class, InjectCrossDomainLogin::class, 'web'],
+            'middleware' => ['nexus', 'web'],
             'domain' => $this->config['main_domain'],
             'as' => 'main.',
             'namespace' => $this->config['route_namespace'] . '\\Main'
@@ -130,8 +133,9 @@ class SiteManager
             ]
         );
 
+        // Global route group
         $this->router->group([
-            'middleware' => [StartSession::class, InjectCrossDomainLogin::class, 'web'],
+            'middleware' => ['nexus', 'web'],
             'namespace' => $this->config['route_namespace']
         ], function () {
             /* Global routes applied to each site */
@@ -206,6 +210,21 @@ class SiteManager
     private function isConsole(): bool
     {
         return php_sapi_name() == 'cli' || php_sapi_name() == 'phpdbg';
+    }
+
+    public function impersonate(int $userId)
+    {
+        $this->request->session()->put('_nexus_impersonate', $userId);
+    }
+
+    public function stopImpersonating()
+    {
+        $this->request->session()->forget('_nexus_impersonate');
+    }
+
+    public function isImpersonating()
+    {
+        $this->request->session()->has('_nexus_impersonate');
     }
 
     /**
