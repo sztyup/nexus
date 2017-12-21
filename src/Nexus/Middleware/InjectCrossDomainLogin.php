@@ -46,18 +46,18 @@ class InjectCrossDomainLogin
         }
 
         // Inject images before the closing body tag
-        $response->setContent(
-            Str::replaceFirst("</body>", $this->getInjectedCode($request->getSession()) . "</body>", $response->getContent())
-        );
+        $response->setContent($this->injectCode($request->session(), $response));
 
         return $response;
     }
 
-    protected function getInjectedCode(Session $session): string
+    protected function injectCode(Session $session, Response $response): string
     {
-        return $this->viewFactory->make('nexus::cdimages', [
+        $content = $this->viewFactory->make('nexus::cdimages', [
             'sites' => $this->siteManager->all(),
             'code' => $this->encrypter->encrypt($session->getId())
         ])->render();
+
+        return Str::replaceFirst("</body>", $content . "\n</body>", $response->getContent());
     }
 }
