@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace Sztyup\Nexus\Middleware;
 
 use Closure;
 use Illuminate\Auth\SessionGuard;

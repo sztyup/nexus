@@ -2,13 +2,13 @@
 
 namespace Sztyup\Nexus;
 
-use App\Http\Middleware\Impersonate;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Foundation\Application;
 use Illuminate\Routing\Router;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\ServiceProvider;
 use Sztyup\Nexus\Commands\InitializeCommand;
+use Sztyup\Nexus\Middleware\Impersonate;
 use Sztyup\Nexus\Middleware\InjectCrossDomainLogin;
 use Sztyup\Nexus\Middleware\StartSession;
 
