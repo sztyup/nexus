@@ -3,7 +3,7 @@
 namespace Sztyup\Nexus\Middleware;
 
 use Closure;
-use Illuminate\Auth\SessionGuard;
+use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -15,7 +15,7 @@ class Impersonate
 
     protected $viewFactory;
 
-    public function __construct(SessionGuard $guard, Factory $factory)
+    public function __construct(Guard $guard, Factory $factory)
     {
         $this->guard = $guard;
         $this->viewFactory = $factory;
