@@ -11,9 +11,12 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Sztyup\Nexus\SiteManager;
 use Closure;
+use Sztyup\Nexus\Traits\InjectorMiddleware;
 
 class InjectCrossDomainLogin
 {
+    use InjectorMiddleware;
+
     protected $siteManager;
 
     protected $viewFactory;
@@ -35,13 +38,12 @@ class InjectCrossDomainLogin
         /** @var Response $response */
         $response = $next($request);
 
-        // Only inject if authenticated
-        if ($this->guard->guest()) {
+        if (!$this->shouldInject($response)) {
             return $response;
         }
 
-        // Only inject html responses
-        if (!Str::contains($response->headers->get('Content-Type'), 'html')) {
+        // Only inject if authenticated
+        if ($this->guard->guest()) {
             return $response;
         }
 

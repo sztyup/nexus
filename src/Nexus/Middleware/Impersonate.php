@@ -8,9 +8,12 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
+use Sztyup\Nexus\Traits\InjectorMiddleware;
 
 class Impersonate
 {
+    use InjectorMiddleware;
+
     protected $guard;
 
     protected $viewFactory;
@@ -35,11 +38,7 @@ class Impersonate
                 /** @var Response $response */
                 $response = $next($request);
 
-                if ($response->isRedirection() || !$response->isOk()) {
-                    return $response;
-                }
-
-                if (Str::contains($response->headers->get('Content-Type'), 'html')) {
+                if ($this->shouldInject($response)) {
                     $this->injectImpersonateBar($response);
                 }
 
