@@ -7,12 +7,13 @@ use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Str;
 use Sztyup\Nexus\Traits\InjectorMiddleware;
 
 class Impersonate
 {
     use InjectorMiddleware;
+
+    const SESSION_KEY = '_nexus_impersonate';
 
     protected $guard;
 
@@ -26,11 +27,11 @@ class Impersonate
 
     public function handle(Request $request, Closure $next)
     {
-        if ($request->session()->has('_nexus_impersonate')) {
+        if ($request->session()->has(self::SESSION_KEY)) {
             if ($request->user() == null) {
                 // Make sure unauthenticad users cant impersonate (eg. expired oauth)
-                if ($request->session()->has('_nexus_impersonate')) {
-                    $request->session()->remove("_nexus_impersonate");
+                if ($request->session()->has(self::SESSION_KEY)) {
+                    $request->session()->remove(self::SESSION_KEY);
                 }
             } else {
                 $this->guard->onceUsingId($request->session()->get('_nexus_impersonate'));
