@@ -17,5 +17,7 @@ trait InjectorMiddleware
         if (!Str::contains($response->headers->get('Content-Type'), 'html')) {
             return false;
         }
+
+        return true;
     }
 }
