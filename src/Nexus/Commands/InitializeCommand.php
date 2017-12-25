@@ -44,9 +44,11 @@ class InitializeCommand extends Command
 
         // Save sites info for nodejs
         $this->filesystem->put(
-            $this->getLaravel()->basePath() . DIRECTORY_SEPARATOR . 'storage/assets/sites.json',
+            $this->config['directories']['assets'] . DIRECTORY_SEPARATOR . 'sites.json',
             $this->sitesToJson()
         );
+
+        $this->info('Writing sites cache');
     }
 
     /**
