@@ -190,23 +190,6 @@ class SiteManager
         return $this->sites;
     }
 
-    public function auth($route = null, $provider = null): string
-    {
-        if (empty($route)) {
-            $route = $this->request->getPathInfo();
-        }
-
-        $data = base64_encode(json_encode([
-            "redirect_site" => $this->current()->getId(),
-            "redirect_uri" => $route,
-            "preferred_provider" => $provider
-        ]));
-
-        return $this->urlGenerator->route("main.auth", [
-            "data" => $data,
-        ]);
-    }
-
     private function isConsole(): bool
     {
         return php_sapi_name() == 'cli' || php_sapi_name() == 'phpdbg';
