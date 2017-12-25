@@ -9,7 +9,13 @@ trait InjectorMiddleware
 {
     protected function shouldInject($response)
     {
-        if (!$response instanceof Response) { // Probably a redirect
+        // Not a normal response, probably a redirect
+        if (!$response instanceof Response) {
+            return false;
+        }
+
+        // Explicit redirect response
+        if ($response->isRedirection()) {
             return false;
         }
 
