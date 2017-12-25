@@ -52,7 +52,7 @@ class Impersonate
 
     protected function injectImpersonateBar(Response &$response)
     {
-        $impersonate = $this->viewFactory->make('partials.impersonate', [
+        $impersonate = $this->viewFactory->make('nexus::impersonate', [
             'user' => $this->guard->user()
         ])->render();
 
