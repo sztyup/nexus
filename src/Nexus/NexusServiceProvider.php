@@ -36,7 +36,7 @@ class NexusServiceProvider extends ServiceProvider
         /** @var Router $router */
         $router = $this->app->make(Router::class);
 
-        // Add middleware group with name 'nexus' with everything needed for us
+        // Add middleware group named 'nexus' with everything needed for us
         $router->middlewareGroup(
             'nexus',
             [
