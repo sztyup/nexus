@@ -69,9 +69,7 @@ class NexusServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->app->singleton('nexus', function (Application $app) {
-            return new SiteManager($app);
-        });
+        $this->app->singleton(SiteManager::class);
 
         $this->app->alias('nexus', SiteManager::class);
 
