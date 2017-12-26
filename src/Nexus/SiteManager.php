@@ -95,7 +95,7 @@ class SiteManager
     {
         /*
          * Main domain, where the central authentication takes place, can be moved by enviroment,
-         * and independent of the sites table, and much else
+         * and independent of the sites storage, the asset generator pipeline and much else
          */
         $this->router->group([
             'middleware' => ['nexus', 'web'],
@@ -167,17 +167,29 @@ class SiteManager
         return $this->sites[$this->currentId];
     }
 
-    public function getByDomain(string $domain): Site
+    /**
+     * @param string $domain
+     * @return Site
+     */
+    public function getByDomain(string $domain)
     {
         return $this->findBy('domain', $domain)->first();
     }
 
-    public function getBySlug(string $slug): Site
+    /**
+     * @param string $slug
+     * @return Site
+     */
+    public function getBySlug(string $slug)
     {
         return $this->findBy('slug', $slug)->first();
     }
 
-    public function getById(int $id): Site
+    /**
+     * @param int $id
+     * @return Site
+     */
+    public function getById(int $id)
     {
         return $this->sites->get($id);
     }
