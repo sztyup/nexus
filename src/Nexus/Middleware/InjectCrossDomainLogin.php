@@ -56,7 +56,9 @@ class InjectCrossDomainLogin
     protected function injectCode(Session $session, Response $response): string
     {
         $content = $this->viewFactory->make('nexus::cdimages', [
-            'sites' => $this->siteManager->all(),
+            'sites' => $this->siteManager->all()->except(
+                $this->siteManager->current()->getId()
+            ),
             'code' => $this->encrypter->encrypt($session->getId())
         ])->render();
 
