@@ -2,6 +2,7 @@
 
 namespace Sztyup\Nexus;
 
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Routing\Router;
 use Illuminate\Session\SessionManager;
@@ -14,7 +15,7 @@ use Sztyup\Nexus\Middleware\StartSession;
 
 class NexusServiceProvider extends ServiceProvider
 {
-    public function boot(BladeCompiler $blade)
+    public function boot(BladeCompiler $blade, Repository $config)
     {
         $this->publishes([
             __DIR__.'/../config/nexus.php' => config_path('nexus.php'),
@@ -28,11 +29,33 @@ class NexusServiceProvider extends ServiceProvider
             ]);
         }
 
-        $this->bootRouting();
+        /** @var SiteManager $manager */
+        $manager = $this->app->make(SiteManager::class);
+
+        $this->bootRouting($manager);
+        $this->filesystems($manager, $config);
         $this->bladeDirectives($blade);
     }
 
-    protected function bootRouting()
+    protected function filesystems(SiteManager $manager, Repository $config)
+    {
+        if ($manager->current() == null) {
+            return;
+        }
+        $disks = [];
+
+        foreach ($manager->all() as $site) {
+            $disks[$site->getSlug()] = [
+                'driver' => 'local',
+                'root' => $config->get('nexus.directories.storage') . DIRECTORY_SEPARATOR . $site->getSlug()
+            ];
+        }
+
+        $config->set('filesystems.disks', $disks);
+        $config->set('filesystems.default', $manager->current()->getSlug());
+    }
+
+    protected function bootRouting(SiteManager $manager)
     {
         /** @var Router $router */
         $router = $this->app->make(Router::class);
@@ -46,9 +69,6 @@ class NexusServiceProvider extends ServiceProvider
                 Impersonate::class
             ]
         );
-
-        /** @var SiteManager $manager */
-        $manager = $this->app->make(SiteManager::class);
 
         // Register all routes for the sites
         $manager->registerRoutes();
