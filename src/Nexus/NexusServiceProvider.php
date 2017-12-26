@@ -3,10 +3,10 @@
 namespace Sztyup\Nexus;
 
 use Illuminate\Contracts\Container\Container;
-use Illuminate\Foundation\Application;
 use Illuminate\Routing\Router;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\View\Compilers\BladeCompiler;
 use Sztyup\Nexus\Commands\InitializeCommand;
 use Sztyup\Nexus\Middleware\Impersonate;
 use Sztyup\Nexus\Middleware\InjectCrossDomainLogin;
@@ -14,7 +14,7 @@ use Sztyup\Nexus\Middleware\StartSession;
 
 class NexusServiceProvider extends ServiceProvider
 {
-    public function boot()
+    public function boot(BladeCompiler $blade)
     {
         $this->publishes([
             __DIR__.'/../config/nexus.php' => config_path('nexus.php'),
@@ -29,6 +29,7 @@ class NexusServiceProvider extends ServiceProvider
         }
 
         $this->bootRouting();
+        $this->bladeDirectives($blade);
     }
 
     protected function bootRouting()
@@ -55,14 +56,14 @@ class NexusServiceProvider extends ServiceProvider
         $this->app->make('view')->share('site', $manager->current());
     }
 
-    protected function bladeDirectives()
+    protected function bladeDirectives(BladeCompiler $blade)
     {
         // @route blade funcion, for site specific routes
-        \Blade::directive("route", function ($expression) {
+        $blade->directive("route", function ($expression) {
             return "<?php echo site()->route($expression); ?>";
         });
 
-        \Blade::directive("resource", function () {
+        $blade->directive("resource", function () {
             return "<?php echo  ?>";
         });
     }
