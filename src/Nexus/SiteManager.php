@@ -158,6 +158,9 @@ class SiteManager
         });
     }
 
+    /**
+     * @return Site
+     */
     public function current()
     {
         if ($this->isConsole()) {

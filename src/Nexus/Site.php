@@ -86,8 +86,13 @@ class Site
      * @param HtmlBuilder $builder
      * @param SiteModelContract $site
      */
-    public function __construct(Factory $view, Registrar $registrar, UrlGenerator $urlGenerator, HtmlBuilder $builder, SiteModelContract $site)
-    {
+    public function __construct(
+        Factory $view,
+        Registrar $registrar,
+        UrlGenerator $urlGenerator,
+        HtmlBuilder $builder,
+        SiteModelContract $site
+    ) {
         $this->view = $view;
         $this->registrar = $registrar;
         $this->urlGenerator = $urlGenerator;
