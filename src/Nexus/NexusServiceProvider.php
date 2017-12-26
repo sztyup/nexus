@@ -60,7 +60,7 @@ class NexusServiceProvider extends ServiceProvider
     {
         // @route blade funcion, for site specific routes
         $blade->directive("route", function ($expression) {
-            return "<?php echo site()->route($expression); ?>";
+            return "<?php echo nexus()->route($expression); ?>";
         });
 
         $blade->directive("resource", function () {
@@ -72,7 +72,7 @@ class NexusServiceProvider extends ServiceProvider
     {
         $this->app->singleton(SiteManager::class);
 
-        $this->app->alias('nexus', SiteManager::class);
+        $this->app->alias(SiteManager::class, 'nexus');
 
         $this->mergeConfigFrom(
             __DIR__.'/../config/nexus.php',
