@@ -37,6 +37,12 @@ class NexusServiceProvider extends ServiceProvider
         $this->bladeDirectives($blade);
     }
 
+    /**
+     * Registers storage disks for all sites and sets the current one as default
+     *
+     * @param SiteManager $manager
+     * @param Repository $config
+     */
     protected function filesystems(SiteManager $manager, Repository $config)
     {
         if ($manager->current() == null) {

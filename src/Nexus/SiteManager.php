@@ -4,15 +4,12 @@ namespace Sztyup\Nexus;
 
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
-use Illuminate\Contracts\Routing\Registrar;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\Factory;
 use Sztyup\Nexus\Exceptions\SiteNotFoundException;
-use Sztyup\Nexus\Middleware\InjectCrossDomainLogin;
-use Sztyup\Nexus\Middleware\StartSession;
 
 class SiteManager
 {
@@ -38,14 +35,20 @@ class SiteManager
     /** @var  int */
     private $currentId;
 
-    public function __construct(Container $container)
-    {
+    public function __construct(
+        Request $request,
+        Factory $viewFactory,
+        UrlGenerator $urlGenerator,
+        Router $router,
+        Repository $config,
+        Container $container
+    ) {
         $this->sites = new Collection();
-        $this->request = $container->make(Request::class);
-        $this->viewFactory = $container->make(Factory::class);
-        $this->urlGenerator = $container->make(UrlGenerator::class);
-        $this->router = $container->make(Router::class);
-        $this->config = $container->make(Repository::class)->get('nexus');
+        $this->request = $request;
+        $this->viewFactory = $viewFactory;
+        $this->urlGenerator = $urlGenerator;
+        $this->router = $router;
+        $this->config = $config->get('nexus');
 
         $this->loadSitesFromRepo($container);
         $this->determineCurrentSite();
