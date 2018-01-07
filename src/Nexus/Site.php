@@ -78,6 +78,11 @@ class Site
     protected $html;
 
     /**
+     * @var array The config for the site
+     */
+    protected $config;
+
+    /**
      * Create a new site instance.
      *
      * @param Factory $view
@@ -91,12 +96,14 @@ class Site
         Registrar $registrar,
         UrlGenerator $urlGenerator,
         HtmlBuilder $builder,
-        SiteModelContract $site
+        SiteModelContract $site,
+        array $config
     ) {
         $this->view = $view;
         $this->registrar = $registrar;
         $this->urlGenerator = $urlGenerator;
         $this->html = $builder;
+        $this->config = $config;
 
         $this->id = $site->getId();
         $this->name = $site->getName();
@@ -173,7 +180,7 @@ class Site
 
     public function getRoutesFile(): string
     {
-        return config('nexus.directories.routes') . DIRECTORY_SEPARATOR . $this->getRoutePrefix() . ".php";
+        return $this->routePath($this->getRoutePrefix() . ".php");
     }
 
     /*
@@ -244,9 +251,7 @@ class Site
     public function registerRoutes()
     {
         $this->registrar->group([
-            'domain' => $this->getDomain(),
-            'as' => $this->getRoutePrefix() . ".",
-            'namespace' => $this->getNameSpace()
+            'domain' => $this->getDomain()
         ], function () {
             if ($this->hasRoutes()) {
                 /*
@@ -256,12 +261,15 @@ class Site
                  */
                 $this->registrar->get('auth/internal', function () {
                     return response('');
-                })->name('auth.internal');
+                })->name($this->getRoutePrefix() . 'auth.internal');
 
                 /*
                  * Include the actual route file for the site
                  */
-                include $this->getRoutesFile();
+                $this->registrar->group([
+                    'as' => $this->getRoutePrefix() . ".",
+                    'namespace' => $this->getNameSpace()
+                ], $this->getRoutesFile());
             } else {
                 /*
                  * If the site is not operational by any reason, all routes catched by a central 503 response
@@ -272,12 +280,31 @@ class Site
     }
 
     /*
+     * Configuration
+     */
+
+    protected function getSiteConfig($key)
+    {
+        return data_get($key, $this->config['sites'][$this->getSlug()]);
+    }
+
+    protected function assetPath($path)
+    {
+        return $this->config['directories']['assets'] . DIRECTORY_SEPARATOR . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+    }
+
+    protected function routePath($path)
+    {
+        return $this->config['directories']['routes'] . DIRECTORY_SEPARATOR . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+    }
+
+    /*
      * Assets
      */
 
     private function mix($path): HtmlString
     {
-        $manifestFile = config('nexus.directories.assets') . DIRECTORY_SEPARATOR . 'mix-manifest.json';
+        $manifestFile = $this->assetPath('mix-manifest.json');
         if (! file_exists($manifestFile)) {
             throw new Exception('The Mix manifest does not exist.');
         }
