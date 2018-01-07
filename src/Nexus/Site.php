@@ -3,6 +3,7 @@
 namespace Sztyup\Nexus;
 
 use Collective\Html\HtmlBuilder;
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Routing\Registrar;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Contracts\View\Factory;
@@ -97,13 +98,13 @@ class Site
         UrlGenerator $urlGenerator,
         HtmlBuilder $builder,
         SiteModelContract $site,
-        array $config
+        Repository $config
     ) {
         $this->view = $view;
         $this->registrar = $registrar;
         $this->urlGenerator = $urlGenerator;
         $this->html = $builder;
-        $this->config = $config;
+        $this->config = $config->get('nexus');
 
         $this->id = $site->getId();
         $this->name = $site->getName();
