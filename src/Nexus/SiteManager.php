@@ -137,7 +137,7 @@ class SiteManager
             $this->router->group([
                 'middleware' => ['nexus'],
                 'domain' => $site->getDomain()
-            ], __DIR__ . '../routes/resources.php');
+            ], __DIR__ . '/../routes/resources.php');
         }
 
         // Global route group
