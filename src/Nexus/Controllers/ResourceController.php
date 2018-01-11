@@ -2,7 +2,7 @@
 
 namespace Sztyup\Nexus\Controllers;
 
-use Illuminate\Filesystem\Filesystem;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Arr;
@@ -15,10 +15,10 @@ class ResourceController extends Controller
     /** @var Site */
     private $site;
 
-    /** @var Filesystem */
+    /** @var FilesystemAdapter */
     private $filesystem;
 
-    public function __construct(SiteManager $siteManager, Filesystem $filesystem)
+    public function __construct(SiteManager $siteManager, FilesystemAdapter $filesystem)
     {
         $this->site = $siteManager->current();
         $this->filesystem = $filesystem;
@@ -26,27 +26,29 @@ class ResourceController extends Controller
 
     public function image($path)
     {
+        if (is_null($this->site)) {
+            return new Response('', 404);
+        }
+
         $file = resource_path("sites" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
 
         if ($this->filesystem->exists($file)) {
-            return $this->response($file);
+            return $this->filesystem->response($file);
         }
 
         $file = storage_path("app" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
 
         if ($this->filesystem->exists($file)) {
-            return $this->response($file);
+            return $this->filesystem->response($file);
         }
 
         $file = storage_path("assets" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
 
         if ($this->filesystem->exists($file)) {
-            return $this->response($file);
+            return $this->filesystem->response($file);
         }
 
-        $empty = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=";
-
-        return $this->response($empty, "image/png", "404.png", 404);
+        return new Response('', 404);
     }
 
     public function js($path)
@@ -63,31 +65,14 @@ class ResourceController extends Controller
     {
         $file = storage_path("assets" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . $path);
         if ($this->filesystem->exists($file)) {
-            return $this->response($file, $mime);
+            return $this->filesystem->response($file, $mime);
         }
 
         $file = storage_path("assets" . DIRECTORY_SEPARATOR . $path);
         if ($this->filesystem->exists($file)) {
-            return $this->response($file, $mime);
+            return $this->filesystem->response($file);
         }
 
         return new Response('', 404);
-    }
-
-    private function response($data, $mime = null, $name = null, $statusCode = 200)
-    {
-        if ($mime == null) {
-            $mime = $this->filesystem->mimeType($data);
-        }
-        if ($name == null) {
-            $name = Arr::last(explode(DIRECTORY_SEPARATOR, $data));
-
-            $data = $this->filesystem->get($data);
-        }
-
-        return new Response($data, $statusCode, [
-            'Content-Type' => $mime,
-            'Content-Disposition' => 'inline; filename="' . $name . '"',
-        ]);
     }
 }
