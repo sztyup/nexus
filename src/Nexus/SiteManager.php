@@ -129,33 +129,16 @@ class SiteManager
         ], $this->config['directories']['routes'] . DIRECTORY_SEPARATOR . 'main.php');
 
         /*
-        * Resource routes, to handle resources for each site
-        * Its needed to avoid eg. golya.sch.bme.hu/js/golya/app.js, instead we can use golya.sch.bme.hu/js/app.js
-        */
-        $this->router->get(
-            'img/{path}',
-            [
-                'uses' => 'Sztyup\Nexus\Controllers\ResourceController@image',
-                'as' => 'resource.img',
-                'where' => ['path' => '.*']
-            ]
-        );
-        $this->router->get(
-            'js/{path}',
-            [
-                'uses' => 'Sztyup\Nexus\Controllers\ResourceController@js',
-                'as' => 'resource.js',
-                'where' => ['path' => '.*']
-            ]
-        );
-        $this->router->get(
-            'css/{path}',
-            [
-                'uses' => 'Sztyup\Nexus\Controllers\ResourceController@css',
-                'as' => 'resource.css',
-                'where' => ['path' => '.*']
-            ]
-        );
+         * Resource routes, to handle resources for each site
+         * Its needed to avoid eg. golya.sch.bme.hu/js/golya/app.js,
+         * instead we can use golya.sch.bme.hu/js/app.js
+         */
+        foreach ($this->all() as $site) {
+            $this->router->group([
+                'middleware' => ['nexus'],
+                'domain' => $site->getDomain()
+            ], __DIR__ . '../routes/resources.php');
+        }
 
         // Global route group
         $this->router->group([
@@ -171,6 +154,9 @@ class SiteManager
             }
         });
 
+        /*
+         * Needed because of Route::...->name() declarations
+         */
         $this->router->getRoutes()->refreshActionLookups();
         $this->router->getRoutes()->refreshNameLookups();
     }
