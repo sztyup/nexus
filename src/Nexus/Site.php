@@ -12,6 +12,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 use Exception;
+use Sztyup\Nexus\Contracts\CommonRouteGroup;
 
 class Site
 {
@@ -83,6 +84,8 @@ class Site
      */
     protected $config;
 
+    protected $commonRegistrars;
+
     /**
      * Create a new site instance.
      *
@@ -98,13 +101,15 @@ class Site
         UrlGenerator $urlGenerator,
         HtmlBuilder $builder,
         SiteModelContract $site,
-        Repository $config
+        Repository $config,
+        array $commonRegistrars
     ) {
         $this->view = $view;
         $this->registrar = $registrar;
         $this->urlGenerator = $urlGenerator;
         $this->html = $builder;
         $this->config = $config->get('nexus');
+        $this->commonRegistrars = $commonRegistrars;
 
         $this->id = $site->getId();
         $this->name = $site->getName();
@@ -219,6 +224,7 @@ class Site
         if ($this->hasRoute($route)) {
             $route = $this->getSiteSpecificRoute($route);
         }
+
         return $this->urlGenerator->route($route, $parameters, $absolute);
     }
 
@@ -235,6 +241,7 @@ class Site
         if ($this->view->exists($this->getSiteSpecificView($view))) {
             $view = $this->getSiteSpecificView($view);
         }
+
         return $this->view->make($view, $data, $mergeData);
     }
 
@@ -262,7 +269,15 @@ class Site
                  */
                 $this->registrar->get('auth/internal', function () {
                     return response('');
-                })->name($this->getRoutePrefix() . 'auth.internal');
+                })->name($this->getRoutePrefix() . '.auth.internal');
+
+                /*
+                 * Register common route groups to prevent duplications
+                 */
+                /** @var CommonRouteGroup $registrar */
+                foreach ($this->commonRegistrars as $registrar) {
+                    $registrar->register($this->registrar, $this);
+                }
 
                 /*
                  * Include the actual route file for the site

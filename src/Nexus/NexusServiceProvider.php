@@ -45,10 +45,7 @@ class NexusServiceProvider extends ServiceProvider
      */
     protected function filesystems(SiteManager $manager, Repository $config)
     {
-        if ($manager->current() == null) {
-            return;
-        }
-        $disks = [];
+        $disks = $config->get('filesystems.disks');
 
         foreach ($manager->all() as $site) {
             $disks[$site->getSlug()] = [
@@ -58,7 +55,10 @@ class NexusServiceProvider extends ServiceProvider
         }
 
         $config->set('filesystems.disks', $disks);
-        $config->set('filesystems.default', $manager->current()->getSlug());
+
+        if ($manager->current()) {
+            $config->set('filesystems.default', $manager->current()->getSlug());
+        }
     }
 
     protected function bootRouting(SiteManager $manager)

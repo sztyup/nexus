@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\Factory;
+use Sztyup\Nexus\Contracts\CommonRouteGroup;
 use Sztyup\Nexus\Exceptions\SiteNotFoundException;
 
 class SiteManager
@@ -33,8 +34,13 @@ class SiteManager
     protected $sites;
 
     /** @var  int */
-    private $currentId;
+    private $currentId = 0;
 
+    /**
+     * SiteManager constructor.
+     *
+     * @throws \Exception
+     */
     public function __construct(
         Request $request,
         Factory $viewFactory,
@@ -60,16 +66,18 @@ class SiteManager
             return null;
         }
 
-        $currentSite = $this->getByDomain($host = $this->request->getHost());
-        if ($currentSite == null) {
-            throw new SiteNotFoundException($host);
+        $currentSite = $this->getByDomain($this->request->getHost());
+        if ($currentSite) {
+            $this->currentId = $currentSite->getId();
         }
-
-        $this->currentId = $currentSite->getId();
 
         return $currentSite;
     }
 
+    /**
+     * @param Container $container
+     * @throws \Exception
+     */
     protected function loadSitesFromRepo(Container $container)
     {
         $repositoryClass = $this->config['model_repository'];
@@ -87,9 +95,22 @@ class SiteManager
         // Add each of the sites to the collection
         /** @var SiteModelContract $siteModel */
         foreach ($repository->getAll() as $siteModel) {
+            $commonRegistrars = [];
+            foreach ($this->config['sites'][$siteModel->getName()]['routes'] ?? [] as $registrar) {
+                $group = $container->make($registrar);
+                if (!$group instanceof CommonRouteGroup) {
+                    throw new \InvalidArgumentException('Given class does not implement CommonRouteGroup interface');
+                }
+
+                $commonRegistrars[] = $container->make($registrar);
+            }
+
             $this->sites->put(
                 $siteModel->getId(),
-                $container->make(Site::class, ['site' => $siteModel])
+                $container->make(Site::class, [
+                    'site' => $siteModel,
+                    'commonRegistrars' => $commonRegistrars
+                ])
             );
         }
     }
@@ -170,6 +191,10 @@ class SiteManager
             return null;
         }
 
+        if ($this->currentId == 0) {
+            return null;
+        }
+
         return $this->sites[$this->currentId];
     }
 
@@ -241,6 +266,13 @@ class SiteManager
          * If running in console then we dont have a current site
          */
         if ($this->isConsole()) {
+            return null;
+        }
+
+        /*
+         * If we couldnt find current site
+         */
+        if ($this->currentId == 0) {
             return null;
         }
 
