@@ -108,7 +108,7 @@ class SiteManager
         /** @var SiteModelContract $siteModel */
         foreach ($repository->getAll() as $siteModel) {
             $commonRegistrars = [];
-            foreach ($this->getConfig('sites.' . $siteModel->getName() . '.routes') as $registrar) {
+            foreach ($this->getConfig('sites.' . $siteModel->getName() . '.routes', []) as $registrar) {
                 $group = $container->make($registrar);
                 if (!$group instanceof CommonRouteGroup) {
                     throw new \InvalidArgumentException('Given class does not implement CommonRouteGroup interface');
