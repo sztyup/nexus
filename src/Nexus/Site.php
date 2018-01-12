@@ -146,6 +146,11 @@ class Site
         return $this->enabled;
     }
 
+    public function getEnabled(): bool
+    {
+        return $this->enabled;
+    }
+
     /*
      * Attributes
      */
