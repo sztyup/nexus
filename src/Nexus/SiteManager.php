@@ -227,6 +227,11 @@ class SiteManager
         return $this->sites;
     }
 
+    public function getEnabledSites(): Collection
+    {
+        return $this->findBy('enabled', true);
+    }
+
     /*
      * Impersonation
      */
