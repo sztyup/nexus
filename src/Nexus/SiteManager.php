@@ -36,6 +36,8 @@ class SiteManager
     /** @var  int */
     private $currentId = 0;
 
+    const IMPERSONATE_SESSION_KEY = '_nexus_impersonate';
+
     /**
      * SiteManager constructor.
      *
@@ -54,24 +56,34 @@ class SiteManager
         $this->viewFactory = $viewFactory;
         $this->urlGenerator = $urlGenerator;
         $this->router = $router;
-        $this->config = $config->get('nexus');
+        $this->config = $config;
 
         $this->loadSitesFromRepo($container);
-        $this->determineCurrentSite();
+        $this->determineCurrentSite($request);
     }
 
-    protected function determineCurrentSite()
+    public function getConfig($config, $default = null)
     {
-        if ($this->isConsole()) {
-            return null;
-        }
+        return $this->config->get('nexus.' . $config, $default);
+    }
 
-        $currentSite = $this->getByDomain($this->request->getHost());
+    public function determineCurrentSite(Request $request)
+    {
+        $currentSite = $this->getByDomain($request->getHost());
         if ($currentSite) {
-            $this->currentId = $currentSite->getId();
+            $this->registerCurrentSite($currentSite);
         }
 
         return $currentSite;
+    }
+
+    protected function registerCurrentSite(Site $site)
+    {
+        $this->currentId = $site->getId();
+
+        $this->viewFactory->share('site', $site);
+
+        $this->config->set('filesystems.default', $site->getSlug());
     }
 
     /**
@@ -80,7 +92,7 @@ class SiteManager
      */
     protected function loadSitesFromRepo(Container $container)
     {
-        $repositoryClass = $this->config['model_repository'];
+        $repositoryClass = $this->getConfig('model_repository');
 
         // Check if it implements required Contract
         $reflection = new \ReflectionClass($repositoryClass);
@@ -96,7 +108,7 @@ class SiteManager
         /** @var SiteModelContract $siteModel */
         foreach ($repository->getAll() as $siteModel) {
             $commonRegistrars = [];
-            foreach ($this->config['sites'][$siteModel->getName()]['routes'] ?? [] as $registrar) {
+            foreach ($this->getConfig('sites.' . $siteModel->getName() . '.routes') as $registrar) {
                 $group = $container->make($registrar);
                 if (!$group instanceof CommonRouteGroup) {
                     throw new \InvalidArgumentException('Given class does not implement CommonRouteGroup interface');
@@ -123,10 +135,10 @@ class SiteManager
          */
         $this->router->group([
             'middleware' => ['nexus', 'web'],
-            'domain' => $this->config['main_domain'],
+            'domain' => $this->getConfig('main_domain'),
             'as' => 'main.',
-            'namespace' => $this->config['route_namespace'] . '\\Main'
-        ], $this->config['directories']['routes'] . DIRECTORY_SEPARATOR . 'main.php');
+            'namespace' => $this->getConfig('route_namespace') . '\\Main'
+        ], $this->getConfig('directories.routes') . DIRECTORY_SEPARATOR . 'main.php');
 
         /*
          * Resource routes, to handle resources for each site
@@ -135,7 +147,7 @@ class SiteManager
          */
         foreach ($this->all() as $site) {
             $this->router->group([
-                'middleware' => ['nexus'],
+                'middleware' => ['nexus', 'web'],
                 'domain' => $site->getDomain()
             ], __DIR__ . '/../routes/resources.php');
         }
@@ -143,10 +155,10 @@ class SiteManager
         // Global route group
         $this->router->group([
             'middleware' => ['nexus', 'web'],
-            'namespace' => $this->config['route_namespace']
+            'namespace' => $this->getConfig('route_namespace')
         ], function () {
             /* Global routes applied to each site */
-            include $this->config['directories']['routes'] . DIRECTORY_SEPARATOR . 'global.php';
+            include $this->getConfig('directories.routes') . DIRECTORY_SEPARATOR . 'global.php';
 
             /* Register each site's route */
             foreach ($this->all() as $site) {
@@ -173,10 +185,6 @@ class SiteManager
      */
     public function current()
     {
-        if ($this->isConsole()) {
-            return null;
-        }
-
         if ($this->currentId == 0) {
             return null;
         }
@@ -219,24 +227,22 @@ class SiteManager
         return $this->sites;
     }
 
-    private function isConsole(): bool
-    {
-        return php_sapi_name() == 'cli' || php_sapi_name() == 'phpdbg';
-    }
-
+    /*
+     * Impersonation
+     */
     public function impersonate(int $userId)
     {
-        $this->request->session()->put('_nexus_impersonate', $userId);
+        $this->request->session()->put(self::IMPERSONATE_SESSION_KEY, $userId);
     }
 
     public function stopImpersonating()
     {
-        $this->request->session()->forget('_nexus_impersonate');
+        $this->request->session()->forget(self::IMPERSONATE_SESSION_KEY);
     }
 
     public function isImpersonating()
     {
-        $this->request->session()->has('_nexus_impersonate');
+        $this->request->session()->has(self::IMPERSONATE_SESSION_KEY);
     }
 
     /**
@@ -248,13 +254,6 @@ class SiteManager
      */
     public function __call($name, $arguments)
     {
-        /*
-         * If running in console then we dont have a current site
-         */
-        if ($this->isConsole()) {
-            return null;
-        }
-
         /*
          * If we couldnt find current site
          */

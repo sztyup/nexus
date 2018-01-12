@@ -45,19 +45,11 @@ class NexusServiceProvider extends ServiceProvider
      */
     protected function filesystems(SiteManager $manager, Repository $config)
     {
-        $disks = $config->get('filesystems.disks');
-
         foreach ($manager->all() as $site) {
-            $disks[$site->getSlug()] = [
+            $config->push('filesystems.disks', [
                 'driver' => 'local',
                 'root' => $config->get('nexus.directories.storage') . DIRECTORY_SEPARATOR . $site->getSlug()
-            ];
-        }
-
-        $config->set('filesystems.disks', $disks);
-
-        if ($manager->current()) {
-            $config->set('filesystems.default', $manager->current()->getSlug());
+            ]);
         }
     }
 
@@ -78,8 +70,6 @@ class NexusServiceProvider extends ServiceProvider
 
         // Register all routes for the sites
         $manager->registerRoutes();
-
-        $this->app->make('view')->share('site', $manager->current());
     }
 
     protected function bladeDirectives(BladeCompiler $blade)
