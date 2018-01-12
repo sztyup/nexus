@@ -2,7 +2,7 @@
 
 namespace Sztyup\Nexus\Controllers;
 
-use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Arr;
@@ -18,7 +18,7 @@ class ResourceController extends Controller
     /** @var FilesystemAdapter */
     private $filesystem;
 
-    public function __construct(SiteManager $siteManager, FilesystemAdapter $filesystem)
+    public function __construct(SiteManager $siteManager, Filesystem $filesystem)
     {
         $this->site = $siteManager->current();
         $this->filesystem = $filesystem;
@@ -33,19 +33,19 @@ class ResourceController extends Controller
         $file = resource_path("sites" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
 
         if ($this->filesystem->exists($file)) {
-            return $this->filesystem->response($file);
+            return response()->file($file);
         }
 
         $file = storage_path("app" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
 
         if ($this->filesystem->exists($file)) {
-            return $this->filesystem->response($file);
+            return response()->file($file);
         }
 
         $file = storage_path("assets" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
 
         if ($this->filesystem->exists($file)) {
-            return $this->filesystem->response($file);
+            return response()->file($file);
         }
 
         return new Response('', 404);
@@ -65,12 +65,12 @@ class ResourceController extends Controller
     {
         $file = storage_path("assets" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . $path);
         if ($this->filesystem->exists($file)) {
-            return $this->filesystem->response($file, $mime);
+            return response()->file($file, ['content-type' => $mime]);
         }
 
         $file = storage_path("assets" . DIRECTORY_SEPARATOR . $path);
         if ($this->filesystem->exists($file)) {
-            return $this->filesystem->response($file);
+            return response()->file($file, ['content-type' => $mime]);
         }
 
         return new Response('', 404);
