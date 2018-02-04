@@ -57,7 +57,10 @@ class InjectCrossDomainLogin
     {
         $content = $this->viewFactory->make('nexus::cdimages', [
             'sites' => $this->siteManager->getEnabledSites()->except(
-                $this->siteManager->current()->getId()
+                $this->siteManager->current()->getId(),
+                $this->siteManager->getByDomain(
+                    $this->siteManager->getConfig('main_domain')
+                )
             ),
             'code' => $this->encrypter->encrypt($session->getId())
         ])->render();
