@@ -81,7 +81,7 @@ class SiteManager
     {
         $this->currentId = $site->getId();
 
-        $this->viewFactory->share('site', $site);
+        $this->viewFactory->share('nexus', $this);
 
         $this->config->set('filesystems.default', $site->getSlug());
     }
