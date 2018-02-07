@@ -8,6 +8,7 @@ use Illuminate\Contracts\Routing\Registrar;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -273,7 +274,7 @@ class Site
                  * for all domain and a middleware uses the encrypted session_id as its own session id
                  */
                 $this->registrar->get('auth/internal', function () {
-                    return response('');
+                    return new Response();
                 })->name($this->getRoutePrefix() . '.auth.internal');
 
                 /*

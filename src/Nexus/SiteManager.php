@@ -102,7 +102,7 @@ class SiteManager
 
         // Instantiate repo
         /** @var SiteRepositoryContract $repository */
-        $repository= $container->make($repositoryClass);
+        $repository = $container->make($repositoryClass);
 
         // Add each of the sites to the collection
         /** @var SiteModelContract $siteModel */

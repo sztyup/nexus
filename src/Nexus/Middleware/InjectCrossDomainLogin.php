@@ -60,7 +60,7 @@ class InjectCrossDomainLogin
                 $this->siteManager->current()->getId(),
                 $this->siteManager->getByDomain(
                     $this->siteManager->getConfig('main_domain')
-                )
+                )->getId()
             ),
             'code' => $this->encrypter->encrypt($session->getId())
         ])->render();
