@@ -16,7 +16,7 @@ return [
     'main_domain' => env('MAIN_DOMAIN'),
 
     'disabled_route' => function () {
-        return response('DISABLED!!');
+        throw new \Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException();
     },
 
     /*
