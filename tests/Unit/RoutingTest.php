@@ -49,4 +49,17 @@ class RoutingTest extends TestCase
             ->assertStatus(404)
         ;
     }
+
+    public function testSiteWithMultipleDomains()
+    {
+        $this->get($this->url('foobar', '/'))
+            ->assertSuccessful()
+            ->assertSee('foobar')
+        ;
+
+        $this->get($this->url('foobar', '/', 2))
+            ->assertSuccessful()
+            ->assertSee('foobar')
+        ;
+    }
 }

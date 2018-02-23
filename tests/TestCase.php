@@ -25,6 +25,9 @@ class TestCase extends Base
                     'routes' => [
                         CustomRouteGroup::class
                     ]
+                ],
+                'foobar' => [
+
                 ]
             ],
             'directories' => [
