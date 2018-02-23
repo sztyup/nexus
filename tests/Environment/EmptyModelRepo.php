@@ -40,6 +40,6 @@ class EmptyModelRepo implements SiteRepositoryContract
             ]);
         }
 
-        dd($slug);
+        return new Collection();
     }
 }
