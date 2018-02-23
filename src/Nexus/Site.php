@@ -18,13 +18,6 @@ use Sztyup\Nexus\Contracts\CommonRouteGroup;
 class Site
 {
     /**
-     * The ID of the site as represented in the DB
-     *
-     * @var  int
-     */
-    private $id;
-
-    /**
      * The name of the site as represented in the code
      *
      * @var string
@@ -34,23 +27,9 @@ class Site
     /**
      * The domain where we accept requests for the site
      *
-     * @var string
+     * @var array
      */
-    private $domain;
-
-    /**
-     * The site where we should direct all requests
-     *
-     * @var string
-     */
-    private $redirect;
-
-    /**
-     * Whether we are enabled
-     *
-     * @var bool
-     */
-    private $enabled;
+    private $domains;
 
     /**
      * View service
@@ -58,13 +37,6 @@ class Site
      * @var View
      */
     protected $view;
-
-    /**
-     * Route generator service
-     *
-     * @var Registrar
-     */
-    protected $registrar;
 
     /**
      * URL generator service
@@ -91,40 +63,30 @@ class Site
      * Create a new site instance.
      *
      * @param Factory $view
-     * @param Registrar $registrar
      * @param UrlGenerator $urlGenerator
      * @param HtmlBuilder $builder
-     * @param SiteModelContract $site
+     * @param Repository $config
+     * @param array $commonRegistrars
+     * @param array $domains
+     * @param string $name
      */
     public function __construct(
         Factory $view,
-        Registrar $registrar,
         UrlGenerator $urlGenerator,
         HtmlBuilder $builder,
-        SiteModelContract $site,
         Repository $config,
-        array $commonRegistrars
+        array $commonRegistrars,
+        array $domains,
+        string $name
     ) {
         $this->view = $view;
-        $this->registrar = $registrar;
         $this->urlGenerator = $urlGenerator;
         $this->html = $builder;
         $this->config = $config->get('nexus');
         $this->commonRegistrars = $commonRegistrars;
+        $this->domains = $domains;
 
-        $this->id = $site->getId();
-        $this->name = $site->getName();
-        $this->domain = $site->getDomain();
-        $this->redirect = $site->getRedirect();
-        $this->enabled = $site->isEnabled();
-    }
-
-    /*
-     * Getters
-     */
-    public function getId(): int
-    {
-        return $this->id;
+        $this->name = $name;
     }
 
     public function getName()
@@ -132,24 +94,23 @@ class Site
         return $this->name;
     }
 
-    public function getDomain(): string
+    public function getDomains(): array
     {
-        return $this->domain;
+        return $this->domains;
     }
 
-    public function getRedirect(): string
+    public function getDomainsAsString()
     {
-        return $this->redirect;
+        if (count($this->domains) == 1) {
+            return $this->domains[0];
+        }
+
+        return '{' . implode('|', $this->domains) . '}';
     }
 
     public function isEnabled(): bool
     {
-        return $this->enabled;
-    }
-
-    public function getEnabled(): bool
-    {
-        return $this->enabled;
+        return count($this->domains) > 0;
     }
 
     /*
@@ -227,10 +188,6 @@ class Site
      */
     public function route($route, $parameters = [], $absolute = true): string
     {
-        if ($this->hasRoute($route)) {
-            $route = $this->getSiteSpecificRoute($route);
-        }
-
         return $this->urlGenerator->route($route, $parameters, $absolute);
     }
 
@@ -252,28 +209,21 @@ class Site
     }
 
     /**
-     * Return
-     *
-     * @param $route
-     * @return bool
+     * Registers all route for this site
+     * @param Registrar $router
      */
-    protected function hasRoute($route): bool
+    public function registerRoutes(Registrar $router)
     {
-        return $this->registrar->has($this->getSiteSpecificRoute($route));
-    }
-
-    public function registerRoutes()
-    {
-        $this->registrar->group([
-            'domain' => $this->getDomain()
-        ], function () {
+        $router->group([
+            'domain' => $this->getDomainsAsString()
+        ], function () use ($router) {
             if ($this->hasRoutes()) {
                 /*
                  * Route returning empty response, needed for the cross-domain login.
                  * Used by the cross domain redirect page, where it includes this route as an image
                  * for all domain and a middleware uses the encrypted session_id as its own session id
                  */
-                $this->registrar->get('auth/internal', function () {
+                $router->get('auth/internal', function () {
                     return new Response();
                 })->name($this->getRoutePrefix() . '.auth.internal');
 
@@ -282,13 +232,13 @@ class Site
                  */
                 /** @var CommonRouteGroup $registrar */
                 foreach ($this->commonRegistrars as $registrar) {
-                    $registrar->register($this->registrar, $this);
+                    $registrar->register($router, $this);
                 }
 
                 /*
                  * Include the actual route file for the site
                  */
-                $this->registrar->group([
+                $router->group([
                     'as' => $this->getRoutePrefix() . ".",
                     'namespace' => $this->getNameSpace()
                 ], $this->getRoutesFile());
@@ -296,7 +246,15 @@ class Site
                 /*
                  * If the site is not operational by any reason, all routes catched by a central 503 response
                  */
-                $this->registrar->get('{all?}', 'Main\MainController@disabled')->where('all', '.*');
+                if ($this->getSiteConfig('disabled_route')) {
+                    $router->get('{all?}', $this->getSiteConfig('disabled_route'))->where('all', '.*');
+                } elseif (class_exists($this->getNameSpace() . '\\Main\\MainController')) {
+                    $router->get('{all?}', 'Main\\MainController@disabled')->where('all', '.*');
+                } else {
+                    $router->get('{all?}', function () {
+                        return response('', 503);
+                    })->where('all', '.*');
+                }
             }
         });
     }
@@ -307,23 +265,30 @@ class Site
 
     protected function getSiteConfig($key)
     {
-        return data_get($key, $this->config['sites'][$this->getSlug()]);
+        return data_get($this->config['sites'][$this->getSlug()], $key);
     }
 
     protected function assetPath($path)
     {
-        return $this->config['directories']['assets'] . DIRECTORY_SEPARATOR . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+        return $this->config['directories']['assets'] .
+            ($path ? DIRECTORY_SEPARATOR . $path : $path);
     }
 
     protected function routePath($path)
     {
-        return $this->config['directories']['routes'] . DIRECTORY_SEPARATOR . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+        return $this->config['directories']['routes'] .
+            ($path ? DIRECTORY_SEPARATOR . $path : $path);
     }
 
     /*
      * Assets
      */
 
+    /**
+     * @param $path
+     * @return HtmlString
+     * @throws Exception
+     */
     private function mix($path): HtmlString
     {
         $manifestFile = $this->assetPath('mix-manifest.json');
@@ -346,13 +311,25 @@ class Site
         return new HtmlString($path);
     }
 
+    /**
+     * @return HtmlString
+     * @throws Exception
+     */
     public function css(): HtmlString
     {
-        return $this->html->style($this->mix($this->getViewPrefix() . "/css/app.css"));
+        return $this->html->style(
+            $this->mix($this->getViewPrefix() . "/css/app.css")
+        );
     }
 
+    /**
+     * @return HtmlString
+     * @throws Exception
+     */
     public function js(): HtmlString
     {
-        return $this->html->script($this->mix($this->getViewPrefix() . "/js/app.js"));
+        return $this->html->script(
+            $this->mix($this->getViewPrefix() . "/js/app.js")
+        );
     }
 }

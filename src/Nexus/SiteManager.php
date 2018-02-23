@@ -10,7 +10,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\Factory;
 use Sztyup\Nexus\Contracts\CommonRouteGroup;
-use Sztyup\Nexus\Exceptions\SiteNotFoundException;
+use Sztyup\Nexus\Contracts\SiteRepositoryContract;
 
 class SiteManager
 {
@@ -41,6 +41,12 @@ class SiteManager
     /**
      * SiteManager constructor.
      *
+     * @param Request $request
+     * @param Factory $viewFactory
+     * @param UrlGenerator $urlGenerator
+     * @param Router $router
+     * @param Repository $config
+     * @param Container $container
      * @throws \Exception
      */
     public function __construct(
@@ -62,11 +68,24 @@ class SiteManager
         $this->determineCurrentSite($request);
     }
 
+    /**
+     * Gets a config out of nexus
+     *
+     * @param $config
+     * @param null $default
+     * @return mixed
+     */
     public function getConfig($config, $default = null)
     {
         return $this->config->get('nexus.' . $config, $default);
     }
 
+    /**
+     * Logic for determining current site
+     *
+     * @param Request $request
+     * @return Site
+     */
     public function determineCurrentSite(Request $request)
     {
         $currentSite = $this->getByDomain($request->getHost());
@@ -77,6 +96,11 @@ class SiteManager
         return $currentSite;
     }
 
+    /**
+     * Sets some global stuff for easier usage of the current Site object
+     *
+     * @param Site $site
+     */
     protected function registerCurrentSite(Site $site)
     {
         $this->currentId = $site->getId();
@@ -87,6 +111,8 @@ class SiteManager
     }
 
     /**
+     * Loads all available Site object from the configured repository
+     *
      * @param Container $container
      * @throws \Exception
      */
@@ -104,11 +130,26 @@ class SiteManager
         /** @var SiteRepositoryContract $repository */
         $repository = $container->make($repositoryClass);
 
-        // Add each of the sites to the collection
-        /** @var SiteModelContract $siteModel */
-        foreach ($repository->getAll() as $siteModel) {
+        foreach ($this->getConfig('sites') ?? [] as $site => $siteOptions) {
+            $domains = [];
+            $params = [];
+
+            foreach ($repository->getBySlug($site) ?? [] as $siteModel) {
+                if ($siteModel->isEnabled()) {
+                    $domains[] = $siteModel->getDomain();
+                }
+
+                foreach ($siteOptions['extra_params'] ?? [] as $param => $paramOptions) {
+                    if ($siteModel->getExtraData($param)) {
+                        $params[] = $siteModel->getExtraData($param);
+                    } elseif ($paramOptions['required']) {
+                        throw new \Exception('Require parameter[' . $param . '] is not given for Site: ' . $site);
+                    }
+                }
+            };
+
             $commonRegistrars = [];
-            foreach ($this->getConfig('sites.' . $siteModel->getName() . '.routes', []) as $registrar) {
+            foreach ($siteOptions['routes'] ?? [] as $registrar) {
                 $group = $container->make($registrar);
                 if (!$group instanceof CommonRouteGroup) {
                     throw new \InvalidArgumentException('Given class does not implement CommonRouteGroup interface');
@@ -117,28 +158,33 @@ class SiteManager
                 $commonRegistrars[] = $container->make($registrar);
             }
 
-            $this->sites->put(
-                $siteModel->getId(),
+            $this->sites->push(
                 $container->make(Site::class, [
-                    'site' => $siteModel,
-                    'commonRegistrars' => $commonRegistrars
+                    'commonRegistrars' => $commonRegistrars,
+                    'domains' => $domains,
+                    'name' => $site
                 ])
             );
         }
     }
 
+    /**
+     * Register all routes defined by the Sites
+     */
     public function registerRoutes()
     {
         /*
          * Main domain, where the central authentication takes place, can be moved by enviroment,
          * and independent of the sites storage, the asset generator pipeline and much else
          */
-        $this->router->group([
-            'middleware' => ['nexus', 'web'],
-            'domain' => $this->getConfig('main_domain'),
-            'as' => 'main.',
-            'namespace' => $this->getConfig('route_namespace') . '\\Main'
-        ], $this->getConfig('directories.routes') . DIRECTORY_SEPARATOR . 'main.php');
+        if (file_exists($main = $this->getConfig('directories.routes') . DIRECTORY_SEPARATOR . 'main.php')) {
+            $this->router->group([
+                'middleware' => ['nexus', 'web'],
+                'domain' => $this->getConfig('main_domain'),
+                'as' => 'main.',
+                'namespace' => $this->getConfig('route_namespace') . '\\Main'
+            ], $main);
+        }
 
         /*
          * Resource routes, to handle resources for each site
@@ -148,22 +194,38 @@ class SiteManager
         foreach ($this->all() as $site) {
             $this->router->group([
                 'middleware' => ['nexus', 'web'],
-                'domain' => $site->getDomain()
+                'domain' => $site->getDomainsAsString()
             ], __DIR__ . '/../routes/resources.php');
         }
 
         // Global route group
+        $global = $this->getConfig('directories.routes') . DIRECTORY_SEPARATOR . 'global.php';
+
+        if (file_exists($global)) {
+            $this->registerGlobalRoute(function ($router) use ($global) {
+                include $global;
+            });
+        }
+
+        foreach ($this->all() as $site) {
+            $this->registerGlobalRoute(function ($router) use ($site) {
+                $site->registerRoutes($router);
+            });
+        }
+    }
+
+    /**
+     * Passes the given closure to a route group with everything setup for nexus
+     *
+     * @param \Closure $closure
+     */
+    public function registerGlobalRoute(\Closure $closure)
+    {
         $this->router->group([
             'middleware' => ['nexus', 'web'],
             'namespace' => $this->getConfig('route_namespace')
-        ], function () {
-            /* Global routes applied to each site */
-            include $this->getConfig('directories.routes') . DIRECTORY_SEPARATOR . 'global.php';
-
-            /* Register each site's route */
-            foreach ($this->all() as $site) {
-                $site->registerRoutes();
-            }
+        ], function () use ($closure) {
+            $closure($this->router);
         });
 
         /*
@@ -173,10 +235,20 @@ class SiteManager
         $this->router->getRoutes()->refreshNameLookups();
     }
 
+    /**
+     * @param $field
+     * @param $value
+     * @return Collection
+     */
     protected function findBy($field, $value): Collection
     {
         return $this->sites->filter(function (Site $site) use ($field, $value) {
-            return $site->{"get" . ucfirst($field)}() == $value;
+            $got = $site->{"get" . ucfirst($field)}();
+            if (is_array($got)) {
+                return in_array($value, $got);
+            } else {
+                return $got == $value;
+            }
         });
     }
 
@@ -198,7 +270,7 @@ class SiteManager
      */
     public function getByDomain(string $domain)
     {
-        return $this->findBy('domain', $domain)->first();
+        return $this->findBy('domains', $domain)->first();
     }
 
     /**
