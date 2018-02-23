@@ -1,6 +1,6 @@
 <?php
 
-namespace Sztyup\Nexus;
+namespace Sztyup\Nexus\Contracts;
 
 use Illuminate\Support\Collection;
 
@@ -12,4 +12,12 @@ interface SiteRepositoryContract
      * @return Collection|SiteModelContract[]
      */
     public function getAll(): Collection;
+
+    /**
+     * Returns Models for a specified site
+     *
+     * @param string $slug
+     * @return SiteModelContract[]|Collection
+     */
+    public function getBySlug(string $slug): Collection;
 }
