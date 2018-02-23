@@ -88,7 +88,6 @@ class Site
         $this->config = $config->get('nexus');
         $this->commonRegistrars = $commonRegistrars;
         $this->domains = $domains;
-
         $this->name = $name;
     }
 
@@ -108,7 +107,7 @@ class Site
             return $this->domains[0];
         }
 
-        return '{' . implode('|', $this->domains) . '}';
+        return '(' . implode('|', $this->domains) . ')';
     }
 
     public function isEnabled(): bool
@@ -218,7 +217,8 @@ class Site
     public function registerRoutes(Registrar $router)
     {
         $router->group([
-            'domain' => $this->getDomainsAsString()
+            'domain' => '{domain}',
+            'where' => ['domain' => $this->getDomainsAsString()]
         ], function () use ($router) {
             if ($this->hasRoutes()) {
                 /*

@@ -148,6 +148,10 @@ class SiteManager
                 }
             };
 
+            if (empty($domains)) {
+                continue;
+            }
+
             $commonRegistrars = [];
             foreach ($siteOptions['routes'] ?? [] as $registrar) {
                 $group = $container->make($registrar);
@@ -194,7 +198,8 @@ class SiteManager
         foreach ($this->all() as $site) {
             $this->router->group([
                 'middleware' => ['nexus', 'web'],
-                'domain' => $site->getDomainsAsString()
+                'domain' => '{domain}',
+                'where' => ['domain' => $site->getDomainsAsString()]
             ], __DIR__ . '/../routes/resources.php');
         }
 
