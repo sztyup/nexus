@@ -57,6 +57,9 @@ class Site
      */
     protected $config;
 
+    /**
+     * @var array The Common Route Group registrars
+     */
     protected $commonRegistrars;
 
     /**
