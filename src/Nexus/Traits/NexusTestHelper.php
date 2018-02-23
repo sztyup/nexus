@@ -6,7 +6,7 @@ use Sztyup\Nexus\SiteManager;
 
 trait NexusTestHelper
 {
-    public function url($slug, $uri = '/')
+    public function url($slug, $uri = '/', $number = 1)
     {
         if (!$this->app->bound(SiteManager::class)) {
             return null;
@@ -17,10 +17,14 @@ trait NexusTestHelper
 
         $site = $manager->getBySlug($slug);
 
+        if (is_null($site)) {
+            return null;
+        }
+
         if (!$site->isEnabled()) {
             return null;
         }
 
-        return 'http://' . $site->getDomains()[0] . $uri;
+        return 'http://' . $site->getDomains()[$number - 1] . $uri;
     }
 }
