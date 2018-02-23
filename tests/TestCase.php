@@ -12,9 +12,10 @@ class TestCase extends Base
 {
     use NexusTestHelper;
 
-    protected function getPackageProviders($app)
+    public function setupNexus()
     {
-        $app['config']['nexus'] = [
+        $this->app['config']['nexus'] = [
+            'main_domain' => 'fallback.com',
             'model_repository' => ModelRepo::class,
             'sites' => [
                 'foo' => [
@@ -30,7 +31,11 @@ class TestCase extends Base
                 'routes' => __DIR__ . DIRECTORY_SEPARATOR . 'Environment'
             ]
         ];
+    }
 
-        return [NexusServiceProvider::class];
+    public function loadNexus()
+    {
+        $this->app->registerDeferredProvider(NexusServiceProvider::class);
+        $this->app->loadDeferredProvider(NexusServiceProvider::class);
     }
 }
