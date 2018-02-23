@@ -16,7 +16,7 @@ class ModelRepo implements SiteRepositoryContract
     public function getAll(): Collection
     {
         return new Collection([
-            new Foo()
+            new DummySite('foo', 'foo.com')
         ]);
     }
 
@@ -30,13 +30,20 @@ class ModelRepo implements SiteRepositoryContract
     {
         if ($slug == 'foo') {
             return new Collection([
-                new Foo()
+                new DummySite('foo', 'foo.com'),
             ]);
         }
 
         if ($slug == 'bar') {
             return new Collection([
-                new Bar()
+                new DummySite('bar', 'bar.com')
+            ]);
+        }
+
+        if ($slug == 'foobar') {
+            return new Collection([
+                new DummySite('foobar', 'bob.com'),
+                new DummySite('foobar', 'alice.com')
             ]);
         }
 
