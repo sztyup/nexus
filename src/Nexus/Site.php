@@ -101,15 +101,6 @@ class Site
         return $this->domains;
     }
 
-    public function getDomainsAsString()
-    {
-        if (count($this->domains) == 1) {
-            return $this->domains[0];
-        }
-
-        return '(' . implode('|', $this->domains) . ')';
-    }
-
     public function isEnabled(): bool
     {
         return count($this->domains) > 0;

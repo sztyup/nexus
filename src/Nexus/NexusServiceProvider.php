@@ -79,9 +79,15 @@ class NexusServiceProvider extends ServiceProvider
 
             Arr::forget($parameters, 'site');
 
+            if (count($site->getDomains()) == 1) {
+                $regex = $site->getDomains()[0];
+            } else {
+                $regex = '(' . implode('|', $site->getDomains()) . ')';
+            }
+
             $this->group(array_merge($parameters, [
                 'domain' => '{__nexus_' . $site->getName() . '}',
-                'where' => ['__nexus_' . $site->getName() => $site->getDomainsAsString()]
+                'where' => ['__nexus_' . $site->getName() => $regex]
             ]), $routes);
         });
 
