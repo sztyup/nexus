@@ -4,11 +4,14 @@ namespace Sztyup\Nexus;
 
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Contracts\Encryption\Encrypter;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\Factory;
+use Illuminate\Support\Str;
 use Sztyup\Nexus\Contracts\CommonRouteGroup;
 use Sztyup\Nexus\Contracts\SiteRepositoryContract;
 
@@ -23,6 +26,9 @@ class SiteManager
     /** @var UrlGenerator */
     protected $urlGenerator;
 
+    /** @var Encrypter */
+    protected $encrypter;
+
     /** @var  Repository */
     protected $config;
 
@@ -33,39 +39,38 @@ class SiteManager
     /** @var Collection */
     protected $sites;
 
-    /** @var  int */
-    private $currentId = 0;
+    /** @var Site */
+    private $current;
 
     const IMPERSONATE_SESSION_KEY = '_nexus_impersonate';
 
     /**
      * SiteManager constructor.
      *
-     * @param Request $request
      * @param Factory $viewFactory
      * @param UrlGenerator $urlGenerator
      * @param Router $router
+     * @param Encrypter $encrypter
      * @param Repository $config
      * @param Container $container
      * @throws \Exception
      */
     public function __construct(
-        Request $request,
         Factory $viewFactory,
         UrlGenerator $urlGenerator,
         Router $router,
+        Encrypter $encrypter,
         Repository $config,
         Container $container
     ) {
         $this->sites = new Collection();
-        $this->request = $request;
         $this->viewFactory = $viewFactory;
         $this->urlGenerator = $urlGenerator;
+        $this->encrypter = $encrypter;
         $this->router = $router;
         $this->config = $config;
 
         $this->loadSitesFromRepo($container);
-        $this->determineCurrentSite($request);
     }
 
     /**
@@ -81,19 +86,60 @@ class SiteManager
     }
 
     /**
-     * Logic for determining current site
+     * Handles request
      *
      * @param Request $request
-     * @return Site
      */
-    public function determineCurrentSite(Request $request)
+    public function handleRequest(Request $request)
     {
+        $this->request = $request;
+
+        // Determine current site
         $currentSite = $this->getByDomain($request->getHost());
         if ($currentSite) {
             $this->registerCurrentSite($currentSite);
         }
 
-        return $currentSite;
+        // Sets routing domain defaults
+        foreach ($this->getEnabledSites() as $site) {
+            $this->urlGenerator->defaults([
+                '__nexus_' . $site->getName() => $site->getDomains()[0]
+            ]);
+        }
+    }
+
+    /**
+     * Handles response
+     *
+     * @param Response $response
+     */
+    public function handleResponse(Response $response)
+    {
+        // If the main domain also hosts a full site
+        $main = $this->getByDomain(
+            $this->getConfig('main_domain')
+        );
+
+        $sites = $this->getEnabledSites();
+
+        if ($main) {
+            // Remove the site which is on the main domain from this collection
+            $sites->forget($sites->search($main));
+        }
+
+        // remove the current site from the collection
+        $sites->forget($sites->search($this->current()));
+
+        // Render cross-domain login images
+        $content = $this->viewFactory->make('nexus::cdimages', [
+            'sites' => $sites,
+            'code' => $this->encrypter->encrypt($this->request->session()->getId())
+        ])->render();
+
+        // Inject images into the response
+        $response->setContent(
+            Str::replaceFirst("</body>", $content . "\n</body>", $response->getContent())
+        );
     }
 
     /**
@@ -103,7 +149,7 @@ class SiteManager
      */
     protected function registerCurrentSite(Site $site)
     {
-        $this->currentId = $site->getId();
+        $this->current = $site;
 
         $this->viewFactory->share('nexus', $this);
 
@@ -163,7 +209,7 @@ class SiteManager
             }
 
             $this->sites->push(
-                $container->make(Site::class, [
+                $site = $container->make(Site::class, [
                     'commonRegistrars' => $commonRegistrars,
                     'domains' => $domains,
                     'name' => $site
@@ -196,10 +242,9 @@ class SiteManager
          * instead we can use golya.sch.bme.hu/js/app.js
          */
         foreach ($this->all() as $site) {
-            $this->router->group([
+            $this->router->nexus([
                 'middleware' => ['nexus', 'web'],
-                'domain' => '{domain}',
-                'where' => ['domain' => $site->getDomainsAsString()]
+                'site' => $site,
             ], __DIR__ . '/../routes/resources.php');
         }
 
@@ -248,7 +293,14 @@ class SiteManager
     protected function findBy($field, $value): Collection
     {
         return $this->sites->filter(function (Site $site) use ($field, $value) {
-            $got = $site->{"get" . ucfirst($field)}();
+            if (method_exists($site, 'get' . ucfirst($field))) {
+                $got = $site->{'get' . ucfirst($field)}();
+            } elseif (method_exists($site, 'is' . ucfirst($field))) {
+                $got = $site->{'is' . ucfirst($field)}();
+            } else {
+                $got = null;
+            }
+
             if (is_array($got)) {
                 return in_array($value, $got);
             } else {
@@ -262,11 +314,7 @@ class SiteManager
      */
     public function current()
     {
-        if ($this->currentId == 0) {
-            return null;
-        }
-
-        return $this->sites[$this->currentId];
+        return $this->current;
     }
 
     /**
@@ -339,7 +387,7 @@ class SiteManager
         /*
          * If we couldnt find current site
          */
-        if ($this->currentId == 0) {
+        if (!$this->current) {
             return null;
         }
 
