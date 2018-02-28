@@ -1,14 +1,14 @@
 <?php
 
-$this->get('/', function (\Illuminate\Http\Request $request) {
+$router->get('/', function () {
     return response('bar');
 })->name('index');
 
 
-$this->get('foo/lol', function (\Illuminate\Http\Request $request) {
-    return response('lol');
+$router->get('foo/lol', function () {
+    return response('<body>lol</body>');
 })->name('lol');
 
-$this->get('foo/asd', function (\Illuminate\Http\Request $request) {
+$router->get('foo/asd', function () {
     return response('asd');
 })->name('asd');
