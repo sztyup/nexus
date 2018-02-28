@@ -12,6 +12,11 @@ class TestCase extends Base
 {
     use NexusTestHelper;
 
+    protected function setUp()
+    {
+        $this->refreshApplication();
+    }
+
     public function setupNexus()
     {
         $this->app['config']['nexus'] = [
