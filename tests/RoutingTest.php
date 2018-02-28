@@ -7,12 +7,17 @@ class RoutingTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
+
         $this->setupNexus();
         $this->loadNexus();
     }
 
     public function testGetRoutes()
     {
+        $this->get($this->url('bar'))
+            ->assertSuccessful()
+        ;
+
         $this->get($this->url('foo', '/foo/lol'))
             ->assertSuccessful()
             ->assertSee('lol')
@@ -28,7 +33,9 @@ class RoutingTest extends TestCase
 
     public function testPostRoutesDenied()
     {
-        $this->post($this->url('foo', '/foo/lol'))->assertStatus(405);
+        $this->post($this->url('foo', '/foo/lol'))
+            ->assertStatus(405)
+        ;
     }
 
     public function testCommonRouteGroup()
