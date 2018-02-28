@@ -2,6 +2,7 @@
 
 namespace Sztyup\Nexus\Traits;
 
+use Illuminate\Support\Str;
 use Sztyup\Nexus\SiteManager;
 
 trait NexusTestHelper
@@ -23,6 +24,10 @@ trait NexusTestHelper
 
         if (!$site->isEnabled()) {
             return null;
+        }
+
+        if (!Str::startsWith($uri, '/')) {
+            $uri = '/' . $uri;
         }
 
         return 'http://' . $site->getDomains()[$number - 1] . $uri;
