@@ -190,7 +190,11 @@ class Site
      */
     public function route($route, $parameters = [], $absolute = true): string
     {
-        return $this->urlGenerator->route($route, $parameters, $absolute);
+        try {
+            return $this->urlGenerator->route($this->getSiteSpecificRoute($route), $parameters, $absolute);
+        } catch (Exception $exception) {
+            return $this->urlGenerator->route($route, $parameters, $absolute);
+        }
     }
 
     /**
@@ -216,9 +220,8 @@ class Site
      */
     public function registerRoutes(Registrar $router)
     {
-        $router->group([
-            'domain' => '{domain}',
-            'where' => ['domain' => $this->getDomainsAsString()]
+        $router->nexus([
+            'site' => $this
         ], function () use ($router) {
             if ($this->hasRoutes()) {
                 /*
