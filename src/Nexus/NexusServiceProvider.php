@@ -6,11 +6,12 @@ use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Routing\Router;
 use Illuminate\Session\SessionManager;
+use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
 use Sztyup\Nexus\Commands\InitializeCommand;
 use Sztyup\Nexus\Middleware\Impersonate;
-use Sztyup\Nexus\Middleware\InjectCrossDomainLogin;
+use Sztyup\Nexus\Middleware\Nexus;
 use Sztyup\Nexus\Middleware\StartSession;
 
 class NexusServiceProvider extends ServiceProvider
@@ -66,11 +67,23 @@ class NexusServiceProvider extends ServiceProvider
         $router->middlewareGroup(
             'nexus',
             [
+                Nexus::class,
                 StartSession::class,
-                InjectCrossDomainLogin::class,
                 Impersonate::class
             ]
         );
+
+        $router::macro('nexus', function ($parameters, $routes) {
+            /** @var Site $site */
+            $site = $parameters['site'];
+
+            Arr::forget($parameters, 'site');
+
+            $this->group(array_merge($parameters, [
+                'domain' => '{__nexus_' . $site->getName() . '}',
+                'where' => ['__nexus_' . $site->getName() => $site->getDomainsAsString()]
+            ]), $routes);
+        });
 
         // Register all routes for the sites
         $manager->registerRoutes();
