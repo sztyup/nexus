@@ -2,6 +2,7 @@
 
 namespace Sztyup\Nexus\Middleware;
 
+use Illuminate\Http\Response;
 use Sztyup\Nexus\SiteManager;
 use Illuminate\Http\Request;
 use Closure;
@@ -31,7 +32,9 @@ class Nexus
 
         $response = $next($request);
 
-        $this->siteManager->handleResponse($response);
+        if ($response instanceof Response) {
+            $this->siteManager->handleResponse($response);
+        }
 
         return $response;
     }
