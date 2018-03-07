@@ -212,7 +212,8 @@ class SiteManager
                 $site = $container->make(Site::class, [
                     'commonRegistrars' => $commonRegistrars,
                     'domains' => $domains,
-                    'name' => $site
+                    'name' => $site,
+                    'title' => $siteOptions['title'] ?? 'Névtelen'
                 ])
             );
         }

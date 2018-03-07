@@ -25,6 +25,13 @@ class Site
     private $name;
 
     /**
+     * Human readable name of the Site
+     *
+     * @var string
+     */
+    private $title;
+
+    /**
      * The domain where we accept requests for the site
      *
      * @var array
@@ -72,6 +79,7 @@ class Site
      * @param array $commonRegistrars
      * @param array $domains
      * @param string $name
+     * @param string $title
      */
     public function __construct(
         Factory $view,
@@ -80,7 +88,8 @@ class Site
         Repository $config,
         array $commonRegistrars,
         array $domains,
-        string $name
+        string $name,
+        string $title
     ) {
         $this->view = $view;
         $this->urlGenerator = $urlGenerator;
@@ -89,11 +98,17 @@ class Site
         $this->commonRegistrars = $commonRegistrars;
         $this->domains = $domains;
         $this->name = $name;
+        $this->title = $title;
     }
 
     public function getName()
     {
         return $this->name;
+    }
+
+    public function getTitle()
+    {
+        return $this->title;
     }
 
     public function getDomains(): array
@@ -265,9 +280,21 @@ class Site
         return data_get($this->config['sites'][$this->getName()], $key);
     }
 
-    protected function assetPath($path)
+    public function storagePath($path)
     {
-        return $this->config['directories']['assets'] .
+        return $this->config['directories']['storage'] . $this->getSlug() .
+            ($path ? DIRECTORY_SEPARATOR . $path : $path);
+    }
+
+    public function resourcePath($path)
+    {
+        return $this->config['directories']['resources'] . $this->getSlug() .
+            ($path ? DIRECTORY_SEPARATOR . $path : $path);
+    }
+
+    public function assetPath($path)
+    {
+        return $this->config['directories']['assets'] . $this->getSlug() .
             ($path ? DIRECTORY_SEPARATOR . $path : $path);
     }
 
@@ -288,7 +315,7 @@ class Site
      */
     private function mix($path): HtmlString
     {
-        $manifestFile = $this->assetPath('mix-manifest.json');
+        $manifestFile = $this->config['directories']['assets'] . DIRECTORY_SEPARATOR . 'mix-manifest.json';
         if (! file_exists($manifestFile)) {
             throw new Exception('The Mix manifest does not exist.');
         }
