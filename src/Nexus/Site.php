@@ -262,7 +262,7 @@ class Site
 
     protected function getSiteConfig($key)
     {
-        return data_get($this->config['sites'][$this->getSlug()], $key);
+        return data_get($this->config['sites'][$this->getName()], $key);
     }
 
     protected function assetPath($path)
