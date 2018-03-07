@@ -2,76 +2,109 @@
 
 namespace Sztyup\Nexus\Controllers;
 
-use Illuminate\Filesystem\Filesystem;
-use Illuminate\Http\Response;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Str;
-use Sztyup\Nexus\Site;
+use Illuminate\Routing\ResponseFactory;
 use Sztyup\Nexus\SiteManager;
 
 class ResourceController extends Controller
 {
-    /** @var Site */
-    private $site;
+    /** @var SiteManager */
+    private $siteManager;
 
-    /** @var FilesystemAdapter */
+    /** @var Filesystem */
     private $filesystem;
 
-    public function __construct(SiteManager $siteManager, Filesystem $filesystem)
-    {
-        $this->site = $siteManager->current();
+    /** @var ResponseFactory */
+    private $responseFactory;
+
+    public function __construct(
+        SiteManager $siteManager,
+        Filesystem $filesystem,
+        ResponseFactory $responseFactory
+    ) {
+        $this->siteManager = $siteManager;
         $this->filesystem = $filesystem;
+        $this->responseFactory = $responseFactory;
+    }
+
+    public function fonts($path)
+    {
+        return $this->resource("fonts" . DIRECTORY_SEPARATOR . $path);
     }
 
     public function image($path)
     {
-        if (is_null($this->site)) {
-            return new Response('', 404);
-        }
-
-        $file = resource_path("sites" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
-
-        if ($this->filesystem->exists($file)) {
-            return response()->file($file);
-        }
-
-        $file = storage_path("app" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
-
-        if ($this->filesystem->exists($file)) {
-            return response()->file($file);
-        }
-
-        $file = storage_path("assets" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . "img" . DIRECTORY_SEPARATOR . $path);
-
-        if ($this->filesystem->exists($file)) {
-            return response()->file($file);
-        }
-
-        return new Response('', 404);
+        return $this->resource("img" . DIRECTORY_SEPARATOR . $path);
     }
 
     public function js($path)
     {
-        return $this->asset("js" . DIRECTORY_SEPARATOR . $path, "application/javascript");
+        return $this->resource("js" . DIRECTORY_SEPARATOR . $path);
     }
 
     public function css($path)
     {
-        return $this->asset("css" . DIRECTORY_SEPARATOR . $path, "text/css");
+        return $this->resource("css" . DIRECTORY_SEPARATOR . $path);
     }
 
-    private function asset($path, $mime = "text/plain")
+    private function resource($path)
     {
-        $file = storage_path("assets" . DIRECTORY_SEPARATOR . Str::lower($this->site->getSlug()) . DIRECTORY_SEPARATOR . $path);
+        $site = $this->siteManager->current();
+
+        if ($site) {
+            $file = $site->resourcePath($path);
+
+            if ($this->filesystem->exists($file)) {
+                return $this->responseFactory->file($file);
+            }
+        }
+
+        $file = resource_path($path);
         if ($this->filesystem->exists($file)) {
-            return response()->file($file, ['content-type' => $mime]);
+            return $this->responseFactory->file($file);
+        }
+
+        return $this->responseFactory->make('', 404);
+    }
+
+    public function storage($path)
+    {
+        $site = $this->siteManager->current();
+
+        if ($site) {
+            $file = $site->storagePath($path);
+
+            if ($this->filesystem->exists($file)) {
+                return $this->responseFactory->file($file);
+            }
+        }
+
+        $file = storage_path('app' . DIRECTORY_SEPARATOR . $path);
+        if ($this->filesystem->exists($file)) {
+            return $this->responseFactory->file($file);
+        }
+
+        return $this->responseFactory->make('', 404);
+    }
+
+    public function asset($path)
+    {
+        $site = $this->siteManager->current();
+
+        if ($site) {
+            $file = $site->assetPath($path);
+
+            if ($this->filesystem->exists($file)) {
+                return $this->responseFactory->file($file);
+            }
         }
 
         $file = storage_path("assets" . DIRECTORY_SEPARATOR . $path);
         if ($this->filesystem->exists($file)) {
-            return response()->file($file, ['content-type' => $mime]);
+            return $this->responseFactory->file($file);
         }
 
-        return new Response('', 404);
+        return $this->responseFactory->make('', 404);
     }
 }
