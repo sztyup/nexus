@@ -15,9 +15,7 @@ class EmptyModelRepo implements SiteRepositoryContract
      */
     public function getAll(): Collection
     {
-        return new Collection([
-
-        ]);
+        return new Collection();
     }
 
     /**
@@ -28,18 +26,6 @@ class EmptyModelRepo implements SiteRepositoryContract
      */
     public function getBySlug(string $slug): Collection
     {
-        if ($slug == 'foo') {
-            return new Collection([
-
-            ]);
-        }
-
-        if ($slug == 'bar') {
-            return new Collection([
-
-            ]);
-        }
-
         return new Collection();
     }
 }
