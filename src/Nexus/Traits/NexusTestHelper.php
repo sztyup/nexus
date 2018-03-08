@@ -2,8 +2,8 @@
 
 namespace Sztyup\Nexus\Traits;
 
-use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Routing\ResponseFactory;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Sztyup\Nexus\SiteManager;
@@ -58,8 +58,6 @@ trait NexusTestHelper
             ->shouldReceive('file')
             ->withArgs([$path])
             ->andReturn(new Response('test'));
-
-        $responseFactory->shouldReceive('view')->atMost()->never()->andReturn(new Response('', 404));
 
         $this->get($url)
             ->assertSuccessful()
