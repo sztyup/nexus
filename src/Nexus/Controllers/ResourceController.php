@@ -3,8 +3,8 @@
 namespace Sztyup\Nexus\Controllers;
 
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Routing\Controller;
-use Illuminate\Routing\ResponseFactory;
 use Sztyup\Nexus\SiteManager;
 
 class ResourceController extends Controller
@@ -40,12 +40,12 @@ class ResourceController extends Controller
 
     public function js($path)
     {
-        return $this->resource("js" . DIRECTORY_SEPARATOR . $path);
+        return $this->asset("js" . DIRECTORY_SEPARATOR . $path);
     }
 
     public function css($path)
     {
-        return $this->resource("css" . DIRECTORY_SEPARATOR . $path);
+        return $this->asset("css" . DIRECTORY_SEPARATOR . $path);
     }
 
     private function resource($path)
