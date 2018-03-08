@@ -94,6 +94,13 @@ class SiteManager
     {
         $this->request = $request;
 
+        // Removes all nexus route parameters, to prevent them from being used in controllers
+        foreach ($request->route()->parameters() as $parameter => $value) {
+            if (Str::contains($parameter, '__nexus_')) {
+                $request->route()->forgetParameter($parameter);
+            }
+        }
+
         // Determine current site
         $currentSite = $this->getByDomain($request->getHost());
         if ($currentSite) {
