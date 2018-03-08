@@ -36,7 +36,9 @@ class TestCase extends Base
                 ]
             ],
             'directories' => [
-                'routes' => __DIR__ . DIRECTORY_SEPARATOR . 'Environment'
+                'routes' => __DIR__ . DIRECTORY_SEPARATOR . 'Environment',
+                'resources' => resource_path(),
+                'assets' => storage_path('assets')
             ]
         ];
     }
@@ -45,5 +47,10 @@ class TestCase extends Base
     {
         $this->app->registerDeferredProvider(NexusServiceProvider::class);
         $this->app->loadDeferredProvider(NexusServiceProvider::class);
+    }
+
+    public function FileResponse($url)
+    {
+
     }
 }
