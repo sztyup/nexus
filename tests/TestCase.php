@@ -48,9 +48,4 @@ class TestCase extends Base
         $this->app->registerDeferredProvider(NexusServiceProvider::class);
         $this->app->loadDeferredProvider(NexusServiceProvider::class);
     }
-
-    public function FileResponse($url)
-    {
-
-    }
 }
