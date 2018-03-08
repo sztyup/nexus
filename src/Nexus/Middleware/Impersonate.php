@@ -15,8 +15,10 @@ class Impersonate
 
     const SESSION_KEY = '_nexus_impersonate';
 
+    /** @var Guard */
     protected $guard;
 
+    /** @var Factory */
     protected $viewFactory;
 
     public function __construct(Guard $guard, Factory $factory)
@@ -34,7 +36,9 @@ class Impersonate
                     $request->session()->remove(self::SESSION_KEY);
                 }
             } else {
-                $this->guard->onceUsingId($request->session()->get('_nexus_impersonate'));
+                $this->guard->onceUsingId(
+                    $request->session()->get(self::SESSION_KEY)
+                );
 
                 /** @var Response $response */
                 $response = $next($request);
