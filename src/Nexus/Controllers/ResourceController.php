@@ -2,9 +2,10 @@
 
 namespace Sztyup\Nexus\Controllers;
 
-use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Contracts\Routing\ResponseFactory;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Routing\Controller;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Sztyup\Nexus\SiteManager;
 
 class ResourceController extends Controller
@@ -40,15 +41,15 @@ class ResourceController extends Controller
 
     public function js($path)
     {
-        return $this->asset("js" . DIRECTORY_SEPARATOR . $path);
+        return $this->asset("js" . DIRECTORY_SEPARATOR . $path, 'text/javascript');
     }
 
     public function css($path)
     {
-        return $this->asset("css" . DIRECTORY_SEPARATOR . $path);
+        return $this->asset("css" . DIRECTORY_SEPARATOR . $path, 'text/css');
     }
 
-    private function resource($path)
+    private function resource($path, $mime = null)
     {
         $site = $this->siteManager->current();
 
@@ -56,19 +57,19 @@ class ResourceController extends Controller
             $file = $site->resourcePath($path);
 
             if ($this->filesystem->exists($file)) {
-                return $this->responseFactory->file($file);
+                return $this->fileResponse($file, $mime);
             }
         }
 
         $file = resource_path($path);
         if ($this->filesystem->exists($file)) {
-            return $this->responseFactory->file($file);
+            return $this->fileResponse($file, $mime);
         }
 
         return $this->responseFactory->make('', 404);
     }
 
-    public function storage($path)
+    public function storage($path, $mime = null)
     {
         $site = $this->siteManager->current();
 
@@ -76,19 +77,19 @@ class ResourceController extends Controller
             $file = $site->storagePath($path);
 
             if ($this->filesystem->exists($file)) {
-                return $this->responseFactory->file($file);
+                return $this->fileResponse($file, $mime);
             }
         }
 
         $file = storage_path('app' . DIRECTORY_SEPARATOR . $path);
         if ($this->filesystem->exists($file)) {
-            return $this->responseFactory->file($file);
+            return $this->fileResponse($file, $mime);
         }
 
         return $this->responseFactory->make('', 404);
     }
 
-    public function asset($path)
+    public function asset($path, $mime = null)
     {
         $site = $this->siteManager->current();
 
@@ -96,15 +97,32 @@ class ResourceController extends Controller
             $file = $site->assetPath($path);
 
             if ($this->filesystem->exists($file)) {
-                return $this->responseFactory->file($file);
+                return $this->fileResponse($file, $mime);
             }
         }
 
         $file = storage_path("assets" . DIRECTORY_SEPARATOR . $path);
         if ($this->filesystem->exists($file)) {
-            return $this->responseFactory->file($file);
+            return $this->fileResponse($file, $mime);
         }
 
         return $this->responseFactory->make('', 404);
+    }
+
+    /**
+     * @param $file
+     * @param string|null $mime
+     * @return BinaryFileResponse
+     */
+    protected function fileResponse($file, $mime = null)
+    {
+        /** @var BinaryFileResponse $response */
+        $response = $this->responseFactory->file($file);
+
+        if ($mime) {
+            $response->headers->set('Content-Type', $mime);
+        }
+
+        return $response;
     }
 }
