@@ -2,6 +2,9 @@
 
 namespace Sztyup\Nexus\Traits;
 
+use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Contracts\Routing\ResponseFactory;
+use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Sztyup\Nexus\SiteManager;
 
@@ -31,5 +34,36 @@ trait NexusTestHelper
         }
 
         return 'http://' . $site->getDomains()[$number - 1] . $uri;
+    }
+
+    public function fileResponseTest($path, $url)
+    {
+        $filesystem = \Mockery::mock(Filesystem::class)->makePartial();
+        $responseFactory = \Mockery::mock(ResponseFactory::class)->makePartial();
+
+        $this->app->bind(Filesystem::class, function () use ($filesystem) {
+            return $filesystem;
+        });
+
+        $this->app->bind(ResponseFactory::class, function () use ($responseFactory) {
+            return $responseFactory;
+        });
+
+        $filesystem
+            ->shouldReceive('exists')
+            ->withArgs([$path])
+            ->andReturn(true);
+
+        $responseFactory
+            ->shouldReceive('file')
+            ->withArgs([$path])
+            ->andReturn(new Response('test'));
+
+        $responseFactory->shouldReceive('view')->atMost()->never()->andReturn(new Response('', 404));
+
+        $this->get($url)
+            ->assertSuccessful()
+            ->assertSee('test')
+        ;
     }
 }
