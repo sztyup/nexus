@@ -282,26 +282,22 @@ class Site
 
     public function storagePath($path)
     {
-        return $this->config['directories']['storage'] . $this->getSlug() .
-            ($path ? DIRECTORY_SEPARATOR . $path : $path);
+        return $this->config['directories']['storage'] . DIRECTORY_SEPARATOR . $this->getSlug() . DIRECTORY_SEPARATOR . $path;
     }
 
     public function resourcePath($path)
     {
-        return $this->config['directories']['resources'] . $this->getSlug() .
-            ($path ? DIRECTORY_SEPARATOR . $path : $path);
+        return $this->config['directories']['resources'] . DIRECTORY_SEPARATOR . $this->getSlug() . DIRECTORY_SEPARATOR . $path;
     }
 
     public function assetPath($path)
     {
-        return $this->config['directories']['assets'] . $this->getSlug() .
-            ($path ? DIRECTORY_SEPARATOR . $path : $path);
+        return $this->config['directories']['assets'] . DIRECTORY_SEPARATOR . $this->getSlug() . DIRECTORY_SEPARATOR . $path;
     }
 
     protected function routePath($path)
     {
-        return $this->config['directories']['routes'] .
-            ($path ? DIRECTORY_SEPARATOR . $path : $path);
+        return $this->config['directories']['routes'] . DIRECTORY_SEPARATOR . $path;
     }
 
     /*
