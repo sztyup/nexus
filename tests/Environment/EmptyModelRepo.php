@@ -1,6 +1,6 @@
 <?php
 
-namespace Sztyup\Nexus\Tests\Environment;;
+namespace Sztyup\Nexus\Tests\Environment;
 
 use Illuminate\Support\Collection;
 use Sztyup\Nexus\Contracts\SiteModelContract;
