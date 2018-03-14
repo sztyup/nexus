@@ -57,11 +57,11 @@ trait NexusTestHelper
         $responseFactory
             ->shouldReceive('file')
             ->withArgs([$path])
-            ->andReturn(new Response('test'));
+            ->andReturn(new Response($testContent = Str::random()));
 
         $this->get($url)
             ->assertSuccessful()
-            ->assertSee('test')
+            ->assertSee($testContent)
         ;
     }
 }
