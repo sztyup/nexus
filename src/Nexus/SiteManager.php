@@ -5,7 +5,8 @@ namespace Sztyup\Nexus;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Encryption\Encrypter;
-use Illuminate\Contracts\Routing\UrlGenerator;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Routing\UrlGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Router;
@@ -14,6 +15,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Support\Str;
 use Sztyup\Nexus\Contracts\CommonRouteGroup;
 use Sztyup\Nexus\Contracts\SiteRepositoryContract;
+use Sztyup\Nexus\Events\SiteFound;
 
 class SiteManager
 {
@@ -35,14 +37,15 @@ class SiteManager
     /** @var  Router */
     protected $router;
 
+    /** @var Dispatcher */
+    protected $dispatcher;
+
 
     /** @var Collection */
     protected $sites;
 
     /** @var Site */
     private $current;
-
-    const IMPERSONATE_SESSION_KEY = '_nexus_impersonate';
 
     /**
      * SiteManager constructor.
@@ -53,6 +56,7 @@ class SiteManager
      * @param Encrypter $encrypter
      * @param Repository $config
      * @param Container $container
+     * @param Dispatcher $dispatcher
      * @throws \Exception
      */
     public function __construct(
@@ -61,7 +65,8 @@ class SiteManager
         Router $router,
         Encrypter $encrypter,
         Repository $config,
-        Container $container
+        Container $container,
+        Dispatcher $dispatcher
     ) {
         $this->sites = new Collection();
         $this->viewFactory = $viewFactory;
@@ -69,6 +74,7 @@ class SiteManager
         $this->encrypter = $encrypter;
         $this->router = $router;
         $this->config = $config;
+        $this->dispatcher = $dispatcher;
 
         $this->loadSitesFromRepo($container);
     }
@@ -104,6 +110,10 @@ class SiteManager
         // Determine current site
         $currentSite = $this->getByDomain($request->getHost());
         if ($currentSite) {
+            $this->dispatcher->dispatch(SiteFound::class, [
+                $currentSite
+            ]);
+
             $this->registerCurrentSite($currentSite);
         }
 
@@ -250,6 +260,7 @@ class SiteManager
          * instead we can use golya.sch.bme.hu/js/app.js
          */
         foreach ($this->all() as $site) {
+            /** @noinspection PhpUndefinedMethodInspection */
             $this->router->nexus([
                 'middleware' => ['nexus', 'web'],
                 'site' => $site,
@@ -363,24 +374,6 @@ class SiteManager
     public function getEnabledSites(): Collection
     {
         return $this->findBy('enabled', true);
-    }
-
-    /*
-     * Impersonation
-     */
-    public function impersonate(int $userId)
-    {
-        $this->request->session()->put(self::IMPERSONATE_SESSION_KEY, $userId);
-    }
-
-    public function stopImpersonating()
-    {
-        $this->request->session()->forget(self::IMPERSONATE_SESSION_KEY);
-    }
-
-    public function isImpersonating()
-    {
-        $this->request->session()->has(self::IMPERSONATE_SESSION_KEY);
     }
 
     /**
