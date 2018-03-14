@@ -10,3 +10,7 @@ install:
 
 script:
   - vendor/bin/phpunit
+
+cache:
+  directories:
+    - $HOME/.composer/cache/files
