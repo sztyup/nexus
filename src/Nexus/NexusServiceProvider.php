@@ -113,6 +113,8 @@ class NexusServiceProvider extends ServiceProvider
 
         $this->app->alias(SiteManager::class, 'nexus');
 
+        $this->app->singleton(ImpersonationManager::class);
+
         $this->mergeConfigFrom(
             __DIR__.'/../config/nexus.php',
             'nexus'
