@@ -1,5 +1,5 @@
 <?php
 
-$this->get('/', function (\Illuminate\Http\Request $request) {
+$this->get('/', function () {
     return response('lol');
 })->name('index');

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Environment;
+namespace Sztyup\Nexus\Tests\Environment;;
 
 use Illuminate\Contracts\Routing\Registrar;
 use Sztyup\Nexus\Contracts\CommonRouteGroup;

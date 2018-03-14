@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Environment;
+namespace Sztyup\Nexus\Tests\Environment;;
 
 use Illuminate\Support\Collection;
 use Sztyup\Nexus\Contracts\SiteModelContract;
@@ -29,24 +29,24 @@ class ModelRepo implements SiteRepositoryContract
     public function getBySlug(string $slug): Collection
     {
         if ($slug == 'foo') {
-            return new Collection([
+            return Collection::make([
                 new DummySite('foo', 'foo.com'),
             ]);
         }
 
         if ($slug == 'bar') {
-            return new Collection([
+            return Collection::make([
                 new DummySite('bar', 'bar.com')
             ]);
         }
 
         if ($slug == 'foobar') {
-            return new Collection([
+            return Collection::make([
                 new DummySite('foobar', 'bob.com'),
                 new DummySite('foobar', 'alice.com')
             ]);
         }
 
-        dd($slug);
+        return Collection::make();
     }
 }

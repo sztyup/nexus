@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests;
+namespace Sztyup\Nexus\Tests;
 
 use Orchestra\Testbench\TestCase as Base;
 use Sztyup\Nexus\NexusServiceProvider;
+use Sztyup\Nexus\Tests\Environment\CustomRouteGroup;
+use Sztyup\Nexus\Tests\Environment\ModelRepo;
 use Sztyup\Nexus\Traits\NexusTestHelper;
-use Tests\Environment\CustomRouteGroup;
-use Tests\Environment\ModelRepo;
 
 class TestCase extends Base
 {

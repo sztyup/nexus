@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests;
+namespace Sztyup\Nexus\Tests;
 
-use Tests\Environment\EmptyModelRepo;
+use Sztyup\Nexus\Tests\Environment\EmptyModelRepo;
 
 class MainTest extends TestCase
 {

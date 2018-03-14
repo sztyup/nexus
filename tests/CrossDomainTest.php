@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests;
+namespace Sztyup\Nexus\Tests;
 
 class CrossDomainTest extends TestCase
 {
