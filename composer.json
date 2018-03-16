@@ -1,7 +1,7 @@
 {
   "name": "sztyup/nexus",
   "description": "Multisite plugin for Laravel 5",
-  "license": "MIT",
+  "license": "LGPL-3.0",
   "authors": [{
     "name": "Csupity László",
     "email": "sztyup@gmail.com"
