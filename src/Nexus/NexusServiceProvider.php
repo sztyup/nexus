@@ -10,7 +10,6 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
 use Sztyup\Nexus\Commands\InitializeCommand;
-use Sztyup\Nexus\Middleware\Impersonate;
 use Sztyup\Nexus\Middleware\Nexus;
 use Sztyup\Nexus\Middleware\StartSession;
 
@@ -68,8 +67,7 @@ class NexusServiceProvider extends ServiceProvider
             'nexus',
             [
                 Nexus::class,
-                StartSession::class,
-                Impersonate::class
+                StartSession::class
             ]
         );
 
