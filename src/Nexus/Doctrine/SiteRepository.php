@@ -30,5 +30,4 @@ class SiteRepository implements SiteRepositoryContract
             ])
         );
     }
-
 }
