@@ -5,7 +5,7 @@ namespace App\Doctrine;
 use Illuminate\Support\Str;
 use LaravelDoctrine\ORM\Configuration\LaravelNamingStrategy;
 
-class NexusNamingStrategy extends LaravelNamingStrategy
+class NamingStrategy extends LaravelNamingStrategy
 {
     public function classToTableName($className)
     {
