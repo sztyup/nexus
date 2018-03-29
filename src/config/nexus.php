@@ -49,7 +49,7 @@ return [
     | The repository class which
     |
     */
-    'model_repository' => 'App\Models\Site',
+    'model_repository' => \Sztyup\Nexus\Doctrine\SiteRepository::class,
 
     'extra_params' => [
         'tracking_id' => [
