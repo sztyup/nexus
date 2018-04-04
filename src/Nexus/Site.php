@@ -83,6 +83,7 @@ class Site
      * @param Repository $config
      * @param array $commonRegistrars
      * @param array $domains
+     * @param array $domainParams
      * @param string $name
      * @param string $title
      */

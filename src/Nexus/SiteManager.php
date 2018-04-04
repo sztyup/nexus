@@ -53,7 +53,8 @@ class SiteManager
      * @param Factory $viewFactory
      * @param UrlGenerator $urlGenerator
      * @param Router $router
-     * @param Encrypter $encrypter     * @param Repository $config
+     * @param Encrypter $encrypter
+     * @param Repository $config
      * @param Container $container
      * @param Dispatcher $dispatcher
      * @throws \Exception
@@ -225,7 +226,8 @@ class SiteManager
                     'commonRegistrars' => $commonRegistrars,
                     'domains' => $domains,
                     'name' => $site,
-                    'title' => $siteOptions['title'] ?? 'Névtelen'
+                    'title' => $siteOptions['title'] ?? 'Névtelen',
+                    'domainParams' => $params
                 ])
             );
         }
