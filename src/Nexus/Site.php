@@ -39,6 +39,11 @@ class Site
     private $domains;
 
     /**
+     * @var array
+     */
+    private $domainParams;
+
+    /**
      * View service
      *
      * @var View
@@ -88,6 +93,7 @@ class Site
         Repository $config,
         array $commonRegistrars,
         array $domains,
+        array $domainParams,
         string $name,
         string $title
     ) {
@@ -97,6 +103,7 @@ class Site
         $this->config = $config->get('nexus');
         $this->commonRegistrars = $commonRegistrars;
         $this->domains = $domains;
+        $this->domainParams = $domainParams;
         $this->name = $name;
         $this->title = $title;
     }
@@ -218,6 +225,11 @@ class Site
         }
 
         return $this->view->make($view, $data, $mergeData);
+    }
+
+    public function getParamForDomain(string $domain, string $param)
+    {
+        return $this->domainParams[$domain][$param] ?? null;
     }
 
     /**

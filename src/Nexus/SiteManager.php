@@ -203,7 +203,7 @@ class SiteManager
 
                 foreach ($siteOptions['extra_params'] ?? [] as $param => $paramOptions) {
                     if ($siteModel->getExtraData($param)) {
-                        $params[] = $siteModel->getExtraData($param);
+                        $params[$siteModel->getDomain()] = $siteModel->getExtraData($param);
                     } elseif ($paramOptions['required']) {
                         throw new \Exception('Require parameter[' . $param . '] is not given for Site: ' . $site);
                     }
