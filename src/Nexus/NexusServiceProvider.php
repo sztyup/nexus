@@ -38,9 +38,10 @@ class NexusServiceProvider extends ServiceProvider
             ]);
         }
 
+        $this->bootRouting($manager, $router);
+
         $manager->handleRequest($this->app->make(Request::class));
 
-        $this->bootRouting($manager, $router);
         $this->filesystems($manager, $config);
         $this->registerListeners($manager, $dispatcher);
         $this->bladeDirectives($blade);
@@ -79,12 +80,14 @@ class NexusServiceProvider extends ServiceProvider
 
     protected function bootRouting(SiteManager $manager, Router $router)
     {
+        array_push($router->middlewarePriority, Nexus::class);
+
         // Add middleware group named 'nexus' with everything needed for us
         $router->middlewareGroup(
             'nexus',
             [
-                Nexus::class,
-                StartSession::class
+                StartSession::class,
+                Nexus::class
             ]
         );
 
