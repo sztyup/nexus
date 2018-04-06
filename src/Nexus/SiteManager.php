@@ -2,8 +2,8 @@
 
 namespace Sztyup\Nexus;
 
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Config\Repository;
-use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Encryption\Encrypter;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Routing\UrlGenerator;
@@ -98,21 +98,20 @@ class SiteManager
      */
     public function handleRequest(Request $request)
     {
-        if ($this->request === $request) {
-            return; // Request already handled
-        }
-
         $this->request = $request;
 
-        // Determine current site
-        $currentSite = $this->getByDomain($request->getHost());
-        if ($currentSite) {
-            $this->dispatcher->dispatch(SiteFound::class, [
-                $currentSite
-            ]);
+        if ($this->current == null) {
+            // Determine current site
+            $currentSite = $this->getByDomain($request->getHost());
+            if ($currentSite) {
+                $this->dispatcher->dispatch(SiteFound::class, [
+                    $currentSite
+                ]);
 
-            $this->registerCurrentSite($currentSite);
+                $this->registerCurrentSite($currentSite);
+            }
         }
+
 
         // Sets routing domain defaults
         foreach ($this->getEnabledSites() as $site) {

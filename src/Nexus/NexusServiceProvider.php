@@ -40,6 +40,8 @@ class NexusServiceProvider extends ServiceProvider
 
         $this->bootRouting($manager, $router);
 
+        $this->app->refresh('request', $manager, 'handleRequest');
+
         $manager->handleRequest($this->app->make(Request::class));
 
         $this->filesystems($manager, $config);
