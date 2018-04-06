@@ -122,6 +122,14 @@ class NexusServiceProvider extends ServiceProvider
             return "<?php echo \$__nexus_site->route($expression); ?>";
         });
 
+        $blade->directive("css", function () {
+            return "<?php echo \$__nexus_site->css(); ?>";
+        });
+
+        $blade->directive("js", function () {
+            return "<?php echo \$__nexus_site->js(); ?>";
+        });
+
         $blade->directive("resource", function () {
             return "<?php echo  ?>";
         });
