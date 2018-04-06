@@ -98,6 +98,10 @@ class SiteManager
      */
     public function handleRequest(Request $request)
     {
+        if ($this->request === $request) {
+            return; // Request already handled
+        }
+
         $this->request = $request;
 
         // Removes all nexus route parameters, to prevent them from being used in controllers
@@ -327,9 +331,14 @@ class SiteManager
 
     /**
      * @return Site
+     * @throws \Exception
      */
     public function current()
     {
+        if (is_null($this->request)) {
+            throw new \Exception('SiteManager has not been booted');
+        }
+
         return $this->current;
     }
 

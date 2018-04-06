@@ -4,7 +4,6 @@ namespace Sztyup\Nexus;
 
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Arr;
@@ -16,7 +15,7 @@ use Sztyup\Nexus\Middleware\StartSession;
 
 class NexusServiceProvider extends ServiceProvider
 {
-    public function boot(BladeCompiler $blade, Repository $config)
+    public function boot(BladeCompiler $blade, Repository $config, SiteManager $manager, Router $router)
     {
         $this->publishes([
             __DIR__.'/../config/nexus.php' => config_path('nexus.php'),
@@ -30,14 +29,7 @@ class NexusServiceProvider extends ServiceProvider
             ]);
         }
 
-        /** @var SiteManager $manager */
-        $manager = $this->app->make(SiteManager::class);
-
-        $manager->handleRequest(
-            $this->app->make(Request::class)
-        );
-
-        $this->bootRouting($manager);
+        $this->bootRouting($manager, $router);
         $this->filesystems($manager, $config);
         $this->bladeDirectives($blade);
     }
@@ -62,11 +54,8 @@ class NexusServiceProvider extends ServiceProvider
         $config->set('filesystems.disks', $disks);
     }
 
-    protected function bootRouting(SiteManager $manager)
+    protected function bootRouting(SiteManager $manager, Router $router)
     {
-        /** @var Router $router */
-        $router = $this->app->make(Router::class);
-
         // Add middleware group named 'nexus' with everything needed for us
         $router->middlewareGroup(
             'nexus',
