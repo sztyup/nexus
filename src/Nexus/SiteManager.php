@@ -104,13 +104,6 @@ class SiteManager
 
         $this->request = $request;
 
-        // Removes all nexus route parameters, to prevent them from being used in controllers
-        foreach ($request->route()->parameters() as $parameter => $value) {
-            if (Str::contains($parameter, '__nexus_')) {
-                $request->route()->forgetParameter($parameter);
-            }
-        }
-
         // Determine current site
         $currentSite = $this->getByDomain($request->getHost());
         if ($currentSite) {
@@ -133,6 +126,7 @@ class SiteManager
      * Handles response
      *
      * @param Response $response
+     * @throws \Exception
      */
     public function handleResponse(Response $response)
     {
@@ -380,28 +374,5 @@ class SiteManager
     public function getEnabledSites(): Collection
     {
         return $this->findBy('enabled', true);
-    }
-
-    /**
-     * Direct every call to the current site
-     *
-     * @param $name
-     * @param $arguments
-     * @return null
-     */
-    public function __call($name, $arguments)
-    {
-        /*
-         * If we couldnt find current site
-         */
-        if (!$this->current) {
-            return null;
-        }
-
-        if (method_exists($this->current(), $name)) {
-            return $this->current()->{$name}(...$arguments);
-        }
-
-        throw new \BadMethodCallException('Method[' . $name . '] does not exists on Site');
     }
 }

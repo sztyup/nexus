@@ -25,11 +25,10 @@ class Nexus
      * @param Request $request
      * @param Closure $next
      * @return mixed
+     * @throws \Exception
      */
     public function handle(Request $request, Closure $next)
     {
-        $this->siteManager->handleRequest($request);
-
         $response = $next($request);
 
         if ($response instanceof Response) {

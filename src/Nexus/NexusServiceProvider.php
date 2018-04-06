@@ -4,10 +4,14 @@ namespace Sztyup\Nexus;
 
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Routing\Router;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
 use Sztyup\Nexus\Commands\InitializeCommand;
 use Sztyup\Nexus\Middleware\Nexus;
@@ -15,8 +19,13 @@ use Sztyup\Nexus\Middleware\StartSession;
 
 class NexusServiceProvider extends ServiceProvider
 {
-    public function boot(BladeCompiler $blade, Repository $config, SiteManager $manager, Router $router)
-    {
+    public function boot(
+        BladeCompiler $blade,
+        Repository $config,
+        SiteManager $manager,
+        Router $router,
+        Dispatcher $dispatcher
+    ) {
         $this->publishes([
             __DIR__.'/../config/nexus.php' => config_path('nexus.php'),
         ], 'config');
@@ -29,8 +38,11 @@ class NexusServiceProvider extends ServiceProvider
             ]);
         }
 
+        $manager->handleRequest($this->app->make(Request::class));
+
         $this->bootRouting($manager, $router);
         $this->filesystems($manager, $config);
+        $this->registerListeners($manager, $dispatcher);
         $this->bladeDirectives($blade);
     }
 
@@ -52,6 +64,17 @@ class NexusServiceProvider extends ServiceProvider
         }
 
         $config->set('filesystems.disks', $disks);
+    }
+
+    protected function registerListeners(SiteManager $manager, Dispatcher $dispatcher)
+    {
+        $dispatcher->listen(RouteMatched::class, function (RouteMatched $routeMatched) {
+            foreach ($routeMatched->route->parameters() as $parameter => $value) {
+                if (Str::contains($parameter, '__nexus_')) {
+                    $routeMatched->route->forgetParameter($parameter);
+                }
+            }
+        });
     }
 
     protected function bootRouting(SiteManager $manager, Router $router)
