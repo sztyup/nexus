@@ -4,6 +4,7 @@ namespace Sztyup\Nexus;
 
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Arr;
@@ -31,6 +32,10 @@ class NexusServiceProvider extends ServiceProvider
 
         /** @var SiteManager $manager */
         $manager = $this->app->make(SiteManager::class);
+
+        $manager->handleRequest(
+            $this->app->make(Request::class)
+        );
 
         $this->bootRouting($manager);
         $this->filesystems($manager, $config);
