@@ -117,7 +117,7 @@ class NexusServiceProvider extends ServiceProvider
     {
         // @route blade funcion, for site specific routes
         $blade->directive("route", function ($expression) {
-            return "<?php echo nexus()->route($expression); ?>";
+            return "<?php echo \$__nexus_site->route($expression); ?>";
         });
 
         $blade->directive("resource", function () {

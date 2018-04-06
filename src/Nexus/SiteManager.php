@@ -166,7 +166,7 @@ class SiteManager
     {
         $this->current = $site;
 
-        $this->viewFactory->share('nexus', $this);
+        $this->viewFactory->share('__nexus_site', $site);
 
         $this->config->set('filesystems.default', $site->getSlug());
     }
