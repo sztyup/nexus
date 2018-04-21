@@ -14,6 +14,7 @@ use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 use Exception;
 use Sztyup\Nexus\Contracts\CommonRouteGroup;
+use Sztyup\Nexus\Exceptions\NexusException;
 
 class Site
 {
@@ -323,13 +324,13 @@ class Site
     /**
      * @param $path
      * @return HtmlString
-     * @throws Exception
+     * @throws NexusException
      */
     private function mix($path): HtmlString
     {
         $manifestFile = $this->config['directories']['assets'] . DIRECTORY_SEPARATOR . 'mix-manifest.json';
         if (! file_exists($manifestFile)) {
-            throw new Exception('The Mix manifest does not exist.');
+            throw new NexusException('The Mix manifest does not exist.');
         }
 
         $manifest = json_decode(file_get_contents($manifestFile), true);
@@ -339,7 +340,7 @@ class Site
         }
 
         if (! array_key_exists($path, $manifest)) {
-            throw new Exception('No generated asset exists for this site.');
+            throw new NexusException('No generated asset exists for this site.');
         }
 
         $path = implode(DIRECTORY_SEPARATOR, Arr::except(explode(DIRECTORY_SEPARATOR, $manifest[$path]), 1));
@@ -349,7 +350,7 @@ class Site
 
     /**
      * @return HtmlString
-     * @throws Exception
+     * @throws NexusException
      */
     public function css(): HtmlString
     {
@@ -360,7 +361,7 @@ class Site
 
     /**
      * @return HtmlString
-     * @throws Exception
+     * @throws NexusException
      */
     public function js(): HtmlString
     {

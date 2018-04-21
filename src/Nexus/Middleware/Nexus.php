@@ -24,8 +24,9 @@ class Nexus
     /**
      * @param Request $request
      * @param Closure $next
+     *
      * @return mixed
-     * @throws \Exception
+     * @throws \Sztyup\Nexus\Exceptions\NexusException
      */
     public function handle(Request $request, Closure $next)
     {

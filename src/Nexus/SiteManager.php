@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 use Sztyup\Nexus\Contracts\CommonRouteGroup;
 use Sztyup\Nexus\Contracts\SiteRepositoryContract;
 use Sztyup\Nexus\Events\SiteFound;
+use Sztyup\Nexus\Exceptions\NexusException;
 
 class SiteManager
 {
@@ -57,7 +58,9 @@ class SiteManager
      * @param Repository $config
      * @param Container $container
      * @param Dispatcher $dispatcher
-     * @throws \Exception
+     *
+     * @throws NexusException
+     * @throws \ReflectionException
      */
     public function __construct(
         Factory $viewFactory,
@@ -125,7 +128,8 @@ class SiteManager
      * Handles response
      *
      * @param Response $response
-     * @throws \Exception
+     *
+     * @throws NexusException
      */
     public function handleResponse(Response $response)
     {
@@ -174,7 +178,9 @@ class SiteManager
      * Loads all available Site object from the configured repository
      *
      * @param Container $container
-     * @throws \Exception
+     *
+     * @throws NexusException
+     * @throws \ReflectionException
      */
     protected function loadSitesFromRepo(Container $container)
     {
@@ -183,7 +189,7 @@ class SiteManager
         // Check if it implements required Contract
         $reflection = new \ReflectionClass($repositoryClass);
         if (!$reflection->implementsInterface(SiteRepositoryContract::class)) {
-            throw new \Exception('Configured repository does not implement SiteRepositoryContract');
+            throw new NexusException('Configured repository does not implement SiteRepositoryContract');
         }
 
         // Instantiate repo
@@ -203,7 +209,7 @@ class SiteManager
                     if ($siteModel->getExtraData($param)) {
                         $params[$siteModel->getDomain()] = $siteModel->getExtraData($param);
                     } elseif ($paramOptions['required']) {
-                        throw new \Exception('Require parameter[' . $param . '] is not given for Site: ' . $site);
+                        throw new NexusException('Require parameter[' . $param . '] is not given for Site: ' . $site);
                     }
                 }
             };
@@ -212,7 +218,7 @@ class SiteManager
             foreach ($siteOptions['routes'] ?? [] as $registrar) {
                 $group = $container->make($registrar);
                 if (!$group instanceof CommonRouteGroup) {
-                    throw new \InvalidArgumentException('Given class does not implement CommonRouteGroup interface');
+                    throw new NexusException('Given class does not implement CommonRouteGroup interface');
                 }
 
                 $commonRegistrars[] = $container->make($registrar);
@@ -324,12 +330,12 @@ class SiteManager
 
     /**
      * @return Site
-     * @throws \Exception
+     * @throws NexusException()
      */
     public function current()
     {
         if (is_null($this->request)) {
-            throw new \Exception('SiteManager has not been booted');
+            throw new NexusException('SiteManager has not been booted');
         }
 
         return $this->current;
