@@ -45,7 +45,7 @@ class NexusServiceProvider extends ServiceProvider
         $manager->handleRequest($this->app->make(Request::class));
 
         $this->filesystems($manager, $config);
-        $this->registerListeners($manager, $dispatcher);
+        $this->registerListeners($dispatcher);
         $this->bladeDirectives($blade);
     }
 
@@ -69,7 +69,7 @@ class NexusServiceProvider extends ServiceProvider
         $config->set('filesystems.disks', $disks);
     }
 
-    protected function registerListeners(SiteManager $manager, Dispatcher $dispatcher)
+    protected function registerListeners(Dispatcher $dispatcher)
     {
         $dispatcher->listen(RouteMatched::class, function (RouteMatched $routeMatched) {
             foreach ($routeMatched->route->parameters() as $parameter => $value) {
