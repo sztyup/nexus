@@ -103,7 +103,7 @@ class SiteManager
     {
         $this->request = $request;
 
-        if ($this->current == null) {
+        if ($this->current === null) {
             // Determine current site
             $currentSite = $this->getByDomain($request->getHost());
             if ($currentSite) {
