@@ -140,11 +140,6 @@ class SiteManager
 
         $sites = $this->getEnabledSites();
 
-        if ($main) {
-            // Remove the site which is on the main domain from this collection
-            $sites->forget($sites->search($main));
-        }
-
         // remove the current site from the collection
         $sites->forget($sites->search($this->current()));
 
