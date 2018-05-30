@@ -15,6 +15,14 @@ return [
     */
     'main_domain' => env('MAIN_DOMAIN'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled route
+    |--------------------------------------------------------------------------
+    |
+    | This route is used if a site is disabled
+    |
+    */
     'disabled_route' => function () {
         throw new \Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException();
     },
@@ -32,6 +40,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Global parameters
+    |--------------------------------------------------------------------------
+    |
+    | The parameters defined here are available to all site and if required
+    | they can throw exception if a site doesnt have a value for it
+    |
+    */
+    'global_params' => [
+        'tracker_id' => [
+            'required' => false
+        ]
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Sites
     |--------------------------------------------------------------------------
     |
@@ -39,6 +62,20 @@ return [
     |
     */
     'sites' => [
+        'Foo' => [
+            'title' => 'Foo site'
+        ]
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Common Route Groups
+    |--------------------------------------------------------------------------
+    |
+    | List the route collection which can be used dinamically on selected sites
+    |
+    */
+    'common_route_groups' => [
     ],
 
     /*
@@ -50,25 +87,6 @@ return [
     |
     */
     'model_repository' => \Sztyup\Nexus\Doctrine\SiteRepository::class,
-
-    'extra_params' => [
-        'tracking_id' => [
-            'required' => true,
-            'type' => 'string'
-        ]
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Pipelines
-    |--------------------------------------------------------------------------
-    |
-    | The pipelines which are used by the multi site system
-    |
-    */
-    'pipelines' => [
-
-    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -83,15 +101,4 @@ return [
         'resources' => resource_path('sites'),
         'assets' => storage_path('assets')
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Views
-    |--------------------------------------------------------------------------
-    |
-    | Here you can override the default views
-    |
-    */
-    'views' => [
-    ]
 ];
