@@ -27,18 +27,17 @@ class TestCase extends Base
 
                 ],
                 'bar' => [
-                    'routes' => [
-                        CustomRouteGroup::class
-                    ]
                 ],
                 'foobar' => [
-
                 ]
             ],
             'directories' => [
                 'routes' => __DIR__ . DIRECTORY_SEPARATOR . 'Environment',
                 'resources' => resource_path(),
                 'assets' => storage_path('assets')
+            ],
+            'common_route_groups' => [
+                CustomRouteGroup::class
             ]
         ];
     }

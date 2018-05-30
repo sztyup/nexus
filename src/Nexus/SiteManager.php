@@ -13,7 +13,6 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Support\Str;
-use Sztyup\Nexus\Contracts\CommonRouteGroup;
 use Sztyup\Nexus\Contracts\SiteRepositoryContract;
 use Sztyup\Nexus\Events\SiteFound;
 use Sztyup\Nexus\Exceptions\NexusException;
@@ -133,11 +132,6 @@ class SiteManager
      */
     public function handleResponse(Response $response)
     {
-        // If the main domain also hosts a full site
-        $main = $this->getByDomain(
-            $this->getConfig('main_domain')
-        );
-
         $sites = $this->getEnabledSites();
 
         // remove the current site from the collection
@@ -200,7 +194,7 @@ class SiteManager
                     $domains[] = $siteModel->getDomain();
                 }
 
-                foreach ($siteOptions['extra_params'] ?? [] as $param => $paramOptions) {
+                foreach ($siteOptions['extra_params'] ?? [] + $this->getConfig('global_params') ?? [] as $param => $paramOptions) {
                     if ($siteModel->getExtraData($param)) {
                         $params[$siteModel->getDomain()] = $siteModel->getExtraData($param);
                     } elseif ($paramOptions['required']) {
@@ -209,14 +203,14 @@ class SiteManager
                 }
             };
 
-            $commonRegistrars = [];
-            foreach ($siteOptions['routes'] ?? [] as $registrar) {
+            $commonRegistrars = Collection::make();
+            foreach ($this->getConfig('common_route_groups', []) as $registrar) {
                 $group = $container->make($registrar);
                 if (!$group instanceof CommonRouteGroup) {
                     throw new NexusException('Given class does not implement CommonRouteGroup interface');
                 }
 
-                $commonRegistrars[] = $container->make($registrar);
+                $commonRegistrars->push($group);
             }
 
             $this->sites->push(

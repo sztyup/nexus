@@ -2,15 +2,13 @@
 
 namespace Sztyup\Nexus\Tests\Environment;
 
-use Illuminate\Contracts\Routing\Registrar;
-use Sztyup\Nexus\Contracts\CommonRouteGroup;
-use Sztyup\Nexus\Site;
+use Sztyup\Nexus\CommonRouteGroup;
 
-class CustomRouteGroup implements CommonRouteGroup
+class CustomRouteGroup extends CommonRouteGroup
 {
-    public function register(Registrar $registrar, Site $site)
+    public function register()
     {
-        $registrar->get('custom', function () {
+        $this->registrar->get('custom', function () {
             return response('custom.bar');
         });
     }

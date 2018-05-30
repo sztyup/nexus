@@ -10,10 +10,10 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 use Exception;
-use Sztyup\Nexus\Contracts\CommonRouteGroup;
 use Sztyup\Nexus\Exceptions\NexusException;
 
 class Site
@@ -71,7 +71,7 @@ class Site
     protected $config;
 
     /**
-     * @var array The Common Route Group registrars
+     * @var Collection The Common Route Group registrars
      */
     protected $commonRegistrars;
 
@@ -82,7 +82,7 @@ class Site
      * @param UrlGenerator $urlGenerator
      * @param HtmlBuilder $builder
      * @param Repository $config
-     * @param array $commonRegistrars
+     * @param Collection $commonRegistrars
      * @param array $domains
      * @param array $domainParams
      * @param string $name
@@ -93,7 +93,7 @@ class Site
         UrlGenerator $urlGenerator,
         HtmlBuilder $builder,
         Repository $config,
-        array $commonRegistrars,
+        Collection $commonRegistrars,
         array $domains,
         array $domainParams,
         string $name,
@@ -103,7 +103,9 @@ class Site
         $this->urlGenerator = $urlGenerator;
         $this->html = $builder;
         $this->config = $config->get('nexus');
-        $this->commonRegistrars = $commonRegistrars;
+        $this->commonRegistrars = $commonRegistrars->map(function (CommonRouteGroup $group) {
+            return $group->setSite($this);
+        });
         $this->domains = $domains;
         $this->domainParams = $domainParams;
         $this->name = $name;
@@ -253,13 +255,9 @@ class Site
                     return new Response();
                 })->name($this->getRoutePrefix() . '.auth.internal');
 
-                /*
-                 * Register common route groups to prevent duplications
-                 */
-                /** @var CommonRouteGroup $registrar */
-                foreach ($this->commonRegistrars as $registrar) {
-                    $registrar->register($router, $this);
-                }
+                $commonRegistrars = $this->commonRegistrars->mapWithKeys(function (CommonRouteGroup $group) {
+                    return [get_class($group) => $group];
+                });
 
                 /*
                  * Include the actual route file for the site
@@ -267,7 +265,9 @@ class Site
                 $router->group([
                     'as' => $this->getRoutePrefix() . ".",
                     'namespace' => $this->getNameSpace()
-                ], $this->getRoutesFile());
+                ], function (Registrar $router) use ($commonRegistrars) {
+                    include $this->getRoutesFile();
+                });
             } else {
                 /*
                  * If the site is not operational by any reason, all routes catched by a central 503 response
