@@ -15,7 +15,7 @@ class ResourcesTest extends TestCase
     public function testFiles()
     {
         $this->fileResponseTest(
-            $this->app->resourcePath('foo/fonts/foo.woff'),
+            $this->app->storagePath() . '/assets/foo/fonts/foo.woff',
             $this->url('foo', '/fonts/foo.woff')
         );
 
