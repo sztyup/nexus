@@ -31,7 +31,7 @@ class ResourceController extends Controller
 
     public function fonts($path)
     {
-        return $this->resource("fonts" . DIRECTORY_SEPARATOR . $path);
+        return $this->asset("fonts" . DIRECTORY_SEPARATOR . $path);
     }
 
     public function image($path)
