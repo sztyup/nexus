@@ -28,8 +28,8 @@ class SiteManager
     /** @var UrlGenerator */
     protected $urlGenerator;
 
-    /** @var Encrypter */
-    protected $encrypter;
+    /** @var Container */
+    protected $container;
 
     /** @var  Repository */
     protected $config;
@@ -73,12 +73,12 @@ class SiteManager
         $this->sites = new Collection();
         $this->viewFactory = $viewFactory;
         $this->urlGenerator = $urlGenerator;
-        $this->encrypter = $encrypter;
+        $this->container = $container;
         $this->router = $router;
         $this->config = $config;
         $this->dispatcher = $dispatcher;
 
-        $this->loadSitesFromRepo($container);
+        $this->loadSitesFromRepo();
     }
 
     /**
@@ -137,10 +137,12 @@ class SiteManager
         // remove the current site from the collection
         $sites->forget($sites->search($this->current()));
 
+        $encrypter = $this->container->make(Encrypter::class);
+
         // Render cross-domain login images
         $content = $this->viewFactory->make('nexus::cdimages', [
             'sites' => $sites,
-            'code' => $this->encrypter->encrypt($this->request->session()->getId())
+            'code' => $encrypter->encrypt($this->request->session()->getId())
         ])->render();
 
         // Inject images into the response
@@ -166,12 +168,10 @@ class SiteManager
     /**
      * Loads all available Site object from the configured repository
      *
-     * @param Container $container
-     *
      * @throws NexusException
      * @throws \ReflectionException
      */
-    protected function loadSitesFromRepo(Container $container)
+    protected function loadSitesFromRepo()
     {
         $repositoryClass = $this->getConfig('model_repository');
 
@@ -183,7 +183,7 @@ class SiteManager
 
         // Instantiate repo
         /** @var SiteRepositoryContract $repository */
-        $repository = $container->make($repositoryClass);
+        $repository = $this->container->make($repositoryClass);
 
         foreach ($this->getConfig('sites') ?? [] as $site => $siteOptions) {
             $domains = [];
@@ -205,7 +205,7 @@ class SiteManager
 
             $commonRegistrars = Collection::make();
             foreach ($this->getConfig('common_route_groups', []) as $registrar) {
-                $group = $container->make($registrar);
+                $group = $this->container->make($registrar);
                 if (!$group instanceof CommonRouteGroup) {
                     throw new NexusException('Given class does not implement CommonRouteGroup interface');
                 }
@@ -214,7 +214,7 @@ class SiteManager
             }
 
             $this->sites->push(
-                $site = $container->make(Site::class, [
+                $site = $this->container->make(Site::class, [
                     'commonRegistrars' => $commonRegistrars,
                     'domains' => $domains,
                     'name' => $site,
