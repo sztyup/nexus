@@ -29,26 +29,87 @@ class ResourceController extends Controller
         $this->responseFactory = $responseFactory;
     }
 
+    /**
+     * @param $path
+     *
+     * @return \Illuminate\Http\Response|null|BinaryFileResponse
+     * @throws \Sztyup\Nexus\Exceptions\NexusException
+     */
     public function fonts($path)
     {
-        return $this->asset("fonts" . DIRECTORY_SEPARATOR . $path);
+        $resource = $this->resource("fonts" . DIRECTORY_SEPARATOR . $path);
+
+        if ($resource) {
+            return $resource;
+        }
+
+        $asset = $this->asset("fonts" . DIRECTORY_SEPARATOR . $path);
+
+        if ($asset) {
+            return $asset;
+        }
+
+        return $this->responseFactory->make('', 404);
     }
 
+    /**
+     * @param $path
+     *
+     * @return \Illuminate\Http\Response|null|BinaryFileResponse
+     * @throws \Sztyup\Nexus\Exceptions\NexusException
+     */
     public function image($path)
     {
-        return $this->resource("img" . DIRECTORY_SEPARATOR . $path);
+        $image = $this->resource("img" . DIRECTORY_SEPARATOR . $path);
+
+        if ($image) {
+            return $image;
+        }
+
+        return $this->responseFactory->make('', 404);
     }
 
+    /**
+     * @param $path
+     *
+     * @return \Illuminate\Http\Response|null|BinaryFileResponse
+     * @throws \Sztyup\Nexus\Exceptions\NexusException
+     */
     public function js($path)
     {
-        return $this->asset("js" . DIRECTORY_SEPARATOR . $path, 'text/javascript');
+        $js = $this->asset("js" . DIRECTORY_SEPARATOR . $path, 'text/javascript');
+
+        if ($js) {
+            return $js;
+        }
+
+        return $this->responseFactory->make('', 404);
     }
 
+    /**
+     * @param $path
+     *
+     * @return \Illuminate\Http\Response|null|BinaryFileResponse
+     * @throws \Sztyup\Nexus\Exceptions\NexusException
+     */
     public function css($path)
     {
-        return $this->asset("css" . DIRECTORY_SEPARATOR . $path, 'text/css');
+        $css = $this->asset("css" . DIRECTORY_SEPARATOR . $path, 'text/css');
+
+        if ($css) {
+            return $css;
+        }
+
+        return $this->responseFactory->make('', 404);
     }
 
+    /**
+     * @param $path
+     * @param null $mime
+     *
+     * @return null|BinaryFileResponse
+     * @throws \Sztyup\Nexus\Exceptions\NexusException
+     */
     private function resource($path, $mime = null)
     {
         $site = $this->siteManager->current();
@@ -66,9 +127,16 @@ class ResourceController extends Controller
             return $this->fileResponse($file, $mime);
         }
 
-        return $this->responseFactory->make('', 404);
+        return null;
     }
 
+    /**
+     * @param $path
+     * @param null $mime
+     *
+     * @return null|BinaryFileResponse
+     * @throws \Sztyup\Nexus\Exceptions\NexusException
+     */
     public function storage($path, $mime = null)
     {
         $site = $this->siteManager->current();
@@ -86,9 +154,16 @@ class ResourceController extends Controller
             return $this->fileResponse($file, $mime);
         }
 
-        return $this->responseFactory->make('', 404);
+        return null;
     }
 
+    /**
+     * @param $path
+     * @param null $mime
+     *
+     * @return null|BinaryFileResponse
+     * @throws \Sztyup\Nexus\Exceptions\NexusException
+     */
     public function asset($path, $mime = null)
     {
         $site = $this->siteManager->current();
@@ -106,7 +181,7 @@ class ResourceController extends Controller
             return $this->fileResponse($file, $mime);
         }
 
-        return $this->responseFactory->make('', 404);
+        return null;
     }
 
     /**
