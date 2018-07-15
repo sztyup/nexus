@@ -17,8 +17,8 @@ class CrossDomainTest extends TestCase
         $this->get($this->url('foo', 'foo/lol'))
             ->assertSuccessful()
             ->assertSee('<!-- Cross domain login handling -->')
-            ->assertSee($this->url('bar', 'auth/internal'))
-            ->assertDontSee($this->url('foo', 'auth/internal'))
+            ->assertSee($this->url('bar', 'nexus/internal/auth'))
+            ->assertDontSee($this->url('foo', 'nexus/internal/auth'))
         ;
     }
 }
