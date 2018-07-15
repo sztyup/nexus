@@ -251,7 +251,7 @@ class Site
                  * Used by the cross domain redirect page, where it includes this route as an image
                  * for all domain and a middleware uses the encrypted session_id as its own session id
                  */
-                $router->get('auth/internal', function () {
+                $router->get('nexus/internal/auth', function () {
                     return new Response();
                 })->name($this->getRoutePrefix() . '.auth.internal');
 
