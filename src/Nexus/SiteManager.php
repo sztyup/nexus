@@ -53,7 +53,6 @@ class SiteManager
      * @param Factory $viewFactory
      * @param UrlGenerator $urlGenerator
      * @param Router $router
-     * @param Encrypter $encrypter
      * @param Repository $config
      * @param Container $container
      * @param Dispatcher $dispatcher
@@ -65,7 +64,6 @@ class SiteManager
         Factory $viewFactory,
         UrlGenerator $urlGenerator,
         Router $router,
-        Encrypter $encrypter,
         Repository $config,
         Container $container,
         Dispatcher $dispatcher
