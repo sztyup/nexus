@@ -66,6 +66,12 @@ class ResourceController extends Controller
             return $image;
         }
 
+        $image = $this->asset("img" . DIRECTORY_SEPARATOR . $path);
+
+        if ($image) {
+            return $image;
+        }
+
         return $this->responseFactory->make('', 404);
     }
 
