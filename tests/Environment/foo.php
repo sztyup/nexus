@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Contracts\Routing\Registrar;
+
 /** @var Registrar $router */
 
 $router->get('/', function () {
