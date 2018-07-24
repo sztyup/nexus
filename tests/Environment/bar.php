@@ -2,6 +2,7 @@
 
 use Sztyup\Nexus\CommonRouteGroup;
 use Illuminate\Contracts\Routing\Registrar;
+
 /** @var Registrar $router */
 /** @var CommonRouteGroup[] $commonRegistrars */
 
