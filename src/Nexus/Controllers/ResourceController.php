@@ -5,6 +5,7 @@ namespace Sztyup\Nexus\Controllers;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Sztyup\Nexus\SiteManager;
 
@@ -60,13 +61,19 @@ class ResourceController extends Controller
      */
     public function image($path)
     {
-        $image = $this->resource("img" . DIRECTORY_SEPARATOR . $path);
+        $mime = null;
+
+        if (Str::endsWith($path, '.svg')) {
+            $mime = 'image/svg+xml';
+        }
+
+        $image = $this->resource("img" . DIRECTORY_SEPARATOR . $path, $mime);
 
         if ($image) {
             return $image;
         }
 
-        $image = $this->asset("img" . DIRECTORY_SEPARATOR . $path);
+        $image = $this->asset("img" . DIRECTORY_SEPARATOR . $path, $mime);
 
         if ($image) {
             return $image;
