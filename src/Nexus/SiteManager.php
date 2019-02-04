@@ -14,6 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Support\Str;
 use Sztyup\Nexus\Contracts\SiteRepositoryContract;
+use Sztyup\Nexus\Controllers\ResourceController;
 use Sztyup\Nexus\Events\SiteFound;
 use Sztyup\Nexus\Exceptions\NexusException;
 
@@ -251,7 +252,19 @@ class SiteManager
             $this->router->nexus([
                 'middleware' => ['nexus', 'web'],
                 'site' => $site,
-            ], __DIR__ . '/../routes/resources.php');
+            ], function (Router $router) use($site) {
+                include __DIR__ . '/../routes/resources.php';
+
+                /*
+                 * Route returning empty response, needed for the cross-domain login.
+                 * Used by the cross domain redirect page, where it includes this route as an image
+                 * for all domain and a middleware uses the encrypted session_id as its own session id
+                 */
+                $this->router->get('nexus/internal/auth', [
+                    'uses' => ResourceController::class . '@internalAuth',
+                    'as' => $site->getRoutePrefix() . '.auth.internal'
+                ]);
+            });
         }
 
         // Global route group
