@@ -14,6 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 use Exception;
+use Sztyup\Nexus\Controllers\ResourceController;
 use Sztyup\Nexus\Exceptions\NexusException;
 
 class Site
@@ -251,9 +252,10 @@ class Site
                  * Used by the cross domain redirect page, where it includes this route as an image
                  * for all domain and a middleware uses the encrypted session_id as its own session id
                  */
-                $router->get('nexus/internal/auth', function () {
-                    return new Response();
-                })->name($this->getRoutePrefix() . '.auth.internal');
+                $router->get('nexus/internal/auth', [
+                    'uses' => ResourceController::class . '@internalAuth',
+                    'as' => $this->getRoutePrefix() . '.auth.internal'
+                ]);
 
                 $commonRegistrars = $this->commonRegistrars->mapWithKeys(function (CommonRouteGroup $group) {
                     return [get_class($group) => $group];

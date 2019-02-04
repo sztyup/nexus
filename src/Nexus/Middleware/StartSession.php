@@ -7,6 +7,8 @@ use Illuminate\Contracts\Session\Session;
 use Illuminate\Session\Middleware\StartSession as Base;
 use Illuminate\Http\Request;
 use Illuminate\Session\SessionManager;
+use Illuminate\Support\Str;
+use Sztyup\Nexus\Controllers\ResourceController;
 
 class StartSession extends Base
 {
@@ -43,5 +45,14 @@ class StartSession extends Base
         }
 
         return $session;
+    }
+
+    protected function storeCurrentUrl(Request $request, $session)
+    {
+        if ($request->route() && Str::contains($request->route()->getActionName(), ResourceController::class)) {
+            return;
+        }
+
+        parent::storeCurrentUrl($request, $session);
     }
 }

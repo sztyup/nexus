@@ -30,6 +30,11 @@ class ResourceController extends Controller
         $this->responseFactory = $responseFactory;
     }
 
+    public function internalAuth()
+    {
+        return $this->responseFactory->make('');
+    }
+
     /**
      * @param $path
      *
