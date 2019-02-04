@@ -53,6 +53,11 @@ class StartSession extends Base
             return;
         }
 
-        parent::storeCurrentUrl($request, $session);
+        if ($request->method() === 'GET' &&
+            $request->route() &&
+            ! $request->ajax() &&
+            ! $request->prefetch()) {
+            $session->setPreviousUrl($request->url());
+        }
     }
 }
