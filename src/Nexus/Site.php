@@ -102,9 +102,7 @@ class Site
         $this->urlGenerator = $urlGenerator;
         $this->html = $builder;
         $this->config = $config->get('nexus');
-        $this->commonRegistrars = $commonRegistrars->map(function (CommonRouteGroup $group) {
-            return $group->setSite($this);
-        });
+        $this->commonRegistrars = $commonRegistrars;
         $this->domains = $domains;
         $this->domainParams = $domainParams;
         $this->name = $name;
@@ -245,8 +243,8 @@ class Site
             'site' => $this
         ], function () use ($router) {
             if ($this->hasRoutes()) {
-                $commonRegistrars = $this->commonRegistrars->mapWithKeys(function (CommonRouteGroup $group) {
-                    return [get_class($group) => $group];
+                $this->commonRegistrars->each(function (CommonRouteGroup $routeGroup) {
+                    $routeGroup->setSite($this)->register();
                 });
                 /*
                  * Include the actual route file for the site

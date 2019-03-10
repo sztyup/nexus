@@ -203,7 +203,7 @@ class SiteManager
             }
 
             $commonRegistrars = Collection::make();
-            foreach ($this->getConfig('common_route_groups', []) as $registrar) {
+            foreach ($siteOptions['routes'] ?? [] as $registrar) {
                 $group = $this->container->make($registrar);
                 if (!$group instanceof CommonRouteGroup) {
                     throw new NexusException('Given class does not implement CommonRouteGroup interface');
