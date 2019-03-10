@@ -8,13 +8,11 @@ use Illuminate\Contracts\Routing\Registrar;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 use Exception;
-use Sztyup\Nexus\Controllers\ResourceController;
 use Sztyup\Nexus\Exceptions\NexusException;
 
 class Site
@@ -143,12 +141,12 @@ class Site
 
     public function getSiteSpecificRoute($route): string
     {
-        return $this->getRoutePrefix() . "." . $route;
+        return $this->getRoutePrefix() . '.' . $route;
     }
 
     public function getSiteSpecificView($view): string
     {
-        return $this->getViewPrefix() . "." . $view;
+        return $this->getViewPrefix() . '.' . $view;
     }
 
     public function getRoutePrefix(): string
@@ -173,7 +171,7 @@ class Site
 
     public function getRoutesFile(): string
     {
-        return $this->routePath($this->getRoutePrefix() . ".php");
+        return $this->routePath($this->getRoutePrefix() . '.php');
     }
 
     /*
@@ -250,23 +248,20 @@ class Site
                 $commonRegistrars = $this->commonRegistrars->mapWithKeys(function (CommonRouteGroup $group) {
                     return [get_class($group) => $group];
                 });
-
                 /*
                  * Include the actual route file for the site
                  */
                 $router->group([
-                    'as' => $this->getRoutePrefix() . ".",
+                    'as' => $this->getRoutePrefix() . '.',
                     'namespace' => $this->getNameSpace()
-                ], function (Registrar $router) use ($commonRegistrars) {
+                ], function (Registrar $router) {
                     include $this->getRoutesFile();
                 });
             } else {
                 /*
                  * If the site is not operational by any reason, all routes catched by a central 503 response
                  */
-                if ($this->getSiteConfig('disabled_route')) {
-                    $router->get('{all?}', $this->getSiteConfig('disabled_route'))->where('all', '.*');
-                } elseif (class_exists($this->getNameSpace() . '\\Main\\MainController')) {
+                if (class_exists($this->getNameSpace() . '\\Main\\MainController')) {
                     $router->get('{all?}', 'Main\\MainController@disabled')->where('all', '.*');
                 } else {
                     $router->get('{all?}', function () {
@@ -347,7 +342,7 @@ class Site
     public function css(): HtmlString
     {
         return $this->html->style(
-            $this->mix($this->getViewPrefix() . "/css/app.css")
+            $this->mix($this->getViewPrefix() . '/css/app.css')
         );
     }
 
@@ -358,7 +353,7 @@ class Site
     public function js(): HtmlString
     {
         return $this->html->script(
-            $this->mix($this->getViewPrefix() . "/js/app.js")
+            $this->mix($this->getViewPrefix() . '/js/app.js')
         );
     }
 }

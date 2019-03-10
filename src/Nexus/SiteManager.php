@@ -146,7 +146,7 @@ class SiteManager
 
         // Inject images into the response
         $response->setContent(
-            Str::replaceFirst("</body>", $content . "\n</body>", $response->getContent())
+            Str::replaceFirst('</body>', $content . "\n</body>", $response->getContent())
         );
     }
 
@@ -200,7 +200,7 @@ class SiteManager
                         throw new NexusException('Require parameter[' . $param . '] is not given for Site: ' . $site);
                     }
                 }
-            };
+            }
 
             $commonRegistrars = Collection::make();
             foreach ($this->getConfig('common_route_groups', []) as $registrar) {
@@ -321,10 +321,10 @@ class SiteManager
             }
 
             if (is_array($got)) {
-                return in_array($value, $got);
-            } else {
-                return $got == $value;
+                return in_array($value, $got, true);
             }
+
+            return $got === $value;
         });
     }
 
@@ -334,7 +334,7 @@ class SiteManager
      */
     public function current()
     {
-        if (is_null($this->request)) {
+        if ($this->request === null) {
             throw new NexusException('SiteManager has not been booted');
         }
 
