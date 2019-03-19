@@ -259,7 +259,7 @@ class SiteManager
             $this->router->nexus([
                 'middleware' => ['nexus', 'web'],
                 'site' => $site,
-            ], function (Router $router) use($site) {
+            ], function (Router $router) use ($site) {
                 include __DIR__ . '/../routes/resources.php';
 
                 /*
