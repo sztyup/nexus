@@ -9,5 +9,3 @@ use Illuminate\Contracts\Routing\Registrar;
 $router->get('/', function () {
     return response('lol');
 })->name('index');
-
-$commonRegistrars[\Sztyup\Nexus\Tests\Environment\CustomRouteGroup::class]->register();
