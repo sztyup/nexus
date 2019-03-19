@@ -189,9 +189,11 @@ class SiteManager
             $params = [];
 
             foreach ($repository->getBySlug($site) ?? [] as $siteModel) {
-                if ($siteModel->isEnabled()) {
-                    $domains[] = $siteModel->getDomain();
+                if (!$siteModel->isEnabled()) {
+                    continue;
                 }
+
+                $domains[] = $siteModel->getDomain();
 
                 foreach ($siteOptions['extra_params'] ?? [] + $this->getConfig('global_params') ?? [] as $param => $paramOptions) {
                     if ($siteModel->getExtraData($param)) {
@@ -210,6 +212,11 @@ class SiteManager
                 }
 
                 $commonRegistrars->push($group);
+            }
+
+            // Always have at least one domain to avoid missing routes errors
+            if (empty($domains)) {
+                $domains[] = $site . '.nexus.local';
             }
 
             $this->sites->push(
