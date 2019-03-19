@@ -12,7 +12,7 @@ class TestCase extends Base
 {
     use NexusTestHelper;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->refreshApplication();
     }

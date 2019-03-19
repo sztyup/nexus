@@ -4,7 +4,7 @@ namespace Sztyup\Nexus\Tests;
 
 class RoutingTest extends TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 

@@ -6,7 +6,7 @@ use Sztyup\Nexus\Tests\Environment\EmptyModelRepo;
 
 class MainTest extends TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -24,7 +24,7 @@ class MainTest extends TestCase
             ->assertSee('main')
         ;
 
-        $this->get($this->url('foo'))
+        $this->get('foo.com')
             ->assertStatus(404)
         ;
     }
