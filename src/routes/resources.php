@@ -1,5 +1,8 @@
 <?php
 
+/** @var Router $router */
+use Illuminate\Routing\Router;
+
 $router->get('assets/{path}', [
         'uses' => 'Sztyup\Nexus\Controllers\ResourceController@asset',
         'as' => 'resource.assets',

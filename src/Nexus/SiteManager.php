@@ -194,13 +194,14 @@ class SiteManager
 
                 if ($siteModel->isPrimary()) {
                     if ($primary) {
-                        throw new NexusException('Can only have one primary domain per site, "' . $site . '" have more');
+                        throw new NexusException('Can only have one primary domain, "' . $site . '" have more');
                     }
 
                     $primary = $siteModel->getDomain();
                 }
 
-                foreach ($siteOptions['extra_params'] ?? [] + $this->getConfig('global_params') ?? [] as $param => $paramOptions) {
+                $allParam = $siteOptions['extra_params'] ?? [] + $this->getConfig('global_params') ?? [];
+                foreach ($allParam as $param => $paramOptions) {
                     if ($siteModel->getExtraData($param)) {
                         $params[$siteModel->getDomain()] = $siteModel->getExtraData($param);
                     } elseif ($paramOptions['required']) {
@@ -294,6 +295,7 @@ class SiteManager
 
         if (file_exists($global)) {
             $this->registerGlobalRoute(function ($router) use ($global) {
+                /** @noinspection PhpIncludeInspection */
                 include $global;
             });
         }

@@ -32,7 +32,7 @@ class ResourceController extends Controller
 
     public function internalAuth()
     {
-        return $this->responseFactory->make('');
+        return $this->responseFactory->make();
     }
 
     /**
@@ -43,13 +43,13 @@ class ResourceController extends Controller
      */
     public function fonts($path)
     {
-        $resource = $this->resource("fonts" . DIRECTORY_SEPARATOR . $path);
+        $resource = $this->resource('fonts' . DIRECTORY_SEPARATOR . $path);
 
         if ($resource) {
             return $resource;
         }
 
-        $asset = $this->asset("fonts" . DIRECTORY_SEPARATOR . $path);
+        $asset = $this->asset('fonts' . DIRECTORY_SEPARATOR . $path);
 
         if ($asset) {
             return $asset;
@@ -72,13 +72,13 @@ class ResourceController extends Controller
             $mime = 'image/svg+xml';
         }
 
-        $image = $this->resource("img" . DIRECTORY_SEPARATOR . $path, $mime);
+        $image = $this->resource('img' . DIRECTORY_SEPARATOR . $path, $mime);
 
         if ($image) {
             return $image;
         }
 
-        $image = $this->asset("img" . DIRECTORY_SEPARATOR . $path, $mime);
+        $image = $this->asset('img' . DIRECTORY_SEPARATOR . $path, $mime);
 
         if ($image) {
             return $image;
@@ -95,7 +95,7 @@ class ResourceController extends Controller
      */
     public function js($path)
     {
-        $js = $this->asset("js" . DIRECTORY_SEPARATOR . $path, 'text/javascript');
+        $js = $this->asset('js' . DIRECTORY_SEPARATOR . $path, 'text/javascript');
 
         if ($js) {
             return $js;
@@ -112,7 +112,7 @@ class ResourceController extends Controller
      */
     public function css($path)
     {
-        $css = $this->asset("css" . DIRECTORY_SEPARATOR . $path, 'text/css');
+        $css = $this->asset('css' . DIRECTORY_SEPARATOR . $path, 'text/css');
 
         if ($css) {
             return $css;
@@ -194,7 +194,7 @@ class ResourceController extends Controller
             }
         }
 
-        $file = storage_path("assets" . DIRECTORY_SEPARATOR . $path);
+        $file = storage_path('assets' . DIRECTORY_SEPARATOR . $path);
         if ($this->filesystem->exists($file)) {
             return $this->fileResponse($file, $mime);
         }

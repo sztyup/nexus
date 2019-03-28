@@ -131,7 +131,7 @@ class Site
 
     public function getDisabledDomains()
     {
-        return array_keys(array_filter($this->domains, function($value) {
+        return array_keys(array_filter($this->domains, function ($value) {
             return !$value;
         }));
     }
@@ -233,6 +233,7 @@ class Site
      */
     public function registerRoutes(Registrar $router)
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         $router->nexus([
             'site' => $this->getName(),
             'domains' => $this->getEnabledDomains()
@@ -248,10 +249,12 @@ class Site
                 'as' => $this->getRoutePrefix() . '.',
                 'namespace' => $this->getNameSpace()
             ], function (Registrar $router) {
+                /** @noinspection PhpIncludeInspection */
                 include $this->getRoutesFile();
             });
         });
 
+        /** @noinspection PhpUndefinedMethodInspection */
         $router->nexus([
             'site' => $this->getName(),
             'domains' => $this->getDisabledDomains()

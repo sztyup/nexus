@@ -86,7 +86,7 @@ return [
     | The repository class which
     |
     */
-    'model_repository' => \Sztyup\Nexus\Doctrine\SiteRepository::class,
+    'model_repository' => null,
 
     /*
     |--------------------------------------------------------------------------

@@ -111,6 +111,7 @@ class NexusServiceProvider extends ServiceProvider
                 $regex = '(' . implode('|', $domains) . ')';
             }
 
+            /** @noinspection PhpUndefinedMethodInspection */
             $this->group(array_merge($parameters, [
                 'domain' => '{__nexus_' . $site . '}',
                 'where' => ['__nexus_' . $site => $regex]
