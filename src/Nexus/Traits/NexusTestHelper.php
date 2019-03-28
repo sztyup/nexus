@@ -21,11 +21,7 @@ trait NexusTestHelper
 
         $site = $manager->getBySlug($slug);
 
-        if (is_null($site)) {
-            return null;
-        }
-
-        if (!$site->isEnabled()) {
+        if ($site === null) {
             return null;
         }
 
@@ -33,7 +29,7 @@ trait NexusTestHelper
             $uri = '/' . $uri;
         }
 
-        return 'http://' . $site->getDomains()[$number - 1] . $uri;
+        return 'http://' . $site->getPrimaryDomain() . $uri;
     }
 
     public function fileResponseTest($path, $url)

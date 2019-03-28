@@ -25,18 +25,18 @@ class Site
     private $name;
 
     /**
-     * Human readable name of the Site
-     *
-     * @var string
-     */
-    private $title;
-
-    /**
      * The domain where we accept requests for the site
      *
      * @var array
      */
     private $domains;
+
+    /**
+     * The primary domain, where routing always goes
+     *
+     * @var string
+     */
+    private $primaryDomain;
 
     /**
      * @var array
@@ -85,7 +85,7 @@ class Site
      * @param array $domains
      * @param array $domainParams
      * @param string $name
-     * @param string $title
+     * @param string $primaryDomain
      */
     public function __construct(
         Factory $view,
@@ -96,7 +96,7 @@ class Site
         array $domains,
         array $domainParams,
         string $name,
-        string $title
+        string $primaryDomain
     ) {
         $this->view = $view;
         $this->urlGenerator = $urlGenerator;
@@ -106,7 +106,7 @@ class Site
         $this->domains = $domains;
         $this->domainParams = $domainParams;
         $this->name = $name;
-        $this->title = $title;
+        $this->primaryDomain = $primaryDomain;
     }
 
     public function getName()
@@ -114,19 +114,31 @@ class Site
         return $this->name;
     }
 
-    public function getTitle()
-    {
-        return $this->title;
-    }
-
     public function getDomains(): array
     {
-        return $this->domains;
+        return array_keys($this->domains);
     }
 
-    public function isEnabled(): bool
+    public function isEnabled($domain): bool
     {
-        return count($this->domains) > 0;
+        return $this->domains[$domain] ?? false;
+    }
+
+    public function getEnabledDomains()
+    {
+        return array_keys(array_filter($this->domains));
+    }
+
+    public function getDisabledDomains()
+    {
+        return array_keys(array_filter($this->domains, function($value) {
+            return !$value;
+        }));
+    }
+
+    public function getPrimaryDomain()
+    {
+        return $this->primaryDomain;
     }
 
     /*
@@ -177,24 +189,6 @@ class Site
      */
 
     /**
-     * Returns wheter or not the given site is valid, and has routes
-     *
-     * @return bool
-     */
-    public function hasRoutes(): bool
-    {
-        if (!$this->isEnabled()) {
-            return false;
-        }
-
-        if (!file_exists($this->getRoutesFile())) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * Returns site specific route, or general if none exists
      *
      * @param $route
@@ -240,33 +234,29 @@ class Site
     public function registerRoutes(Registrar $router)
     {
         $router->nexus([
-            'site' => $this
+            'site' => $this->getName(),
+            'domains' => $this->getEnabledDomains()
         ], function () use ($router) {
-            if ($this->hasRoutes()) {
-                $this->commonRegistrars->each(function (CommonRouteGroup $routeGroup) {
-                    $routeGroup->setSite($this)->register();
-                });
-                /*
-                 * Include the actual route file for the site
-                 */
-                $router->group([
-                    'as' => $this->getRoutePrefix() . '.',
-                    'namespace' => $this->getNameSpace()
-                ], function (Registrar $router) {
-                    include $this->getRoutesFile();
-                });
-            } else {
-                /*
-                 * If the site is not operational by any reason, all routes catched by a central 503 response
-                 */
-                if (class_exists($this->getNameSpace() . '\\Main\\MainController')) {
-                    $router->get('{all?}', 'Main\\MainController@disabled')->where('all', '.*');
-                } else {
-                    $router->get('{all?}', function () {
-                        return response('', 503);
-                    })->where('all', '.*');
-                }
-            }
+            $this->commonRegistrars->each(function (CommonRouteGroup $routeGroup) {
+                $routeGroup->setSite($this)->register();
+            });
+
+            /*
+             * Include the actual route file for the site
+             */
+            $router->group([
+                'as' => $this->getRoutePrefix() . '.',
+                'namespace' => $this->getNameSpace()
+            ], function (Registrar $router) {
+                include $this->getRoutesFile();
+            });
+        });
+
+        $router->nexus([
+            'site' => $this->getName(),
+            'domains' => $this->getDisabledDomains()
+        ], function () use ($router) {
+            $router->get('{all?}', $this->config['disabled_route'])->where('all', '.*');
         });
     }
 
@@ -320,7 +310,7 @@ class Site
 
         $manifest = json_decode(file_get_contents($manifestFile), true);
 
-        if (! starts_with($path, DIRECTORY_SEPARATOR)) {
+        if (! Str::startsWith($path, DIRECTORY_SEPARATOR)) {
             $path = DIRECTORY_SEPARATOR . $path;
         }
 

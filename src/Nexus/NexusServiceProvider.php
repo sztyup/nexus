@@ -82,7 +82,7 @@ class NexusServiceProvider extends ServiceProvider
 
     protected function bootRouting(SiteManager $manager, Router $router)
     {
-        array_push($router->middlewarePriority, Nexus::class);
+        $router->middlewarePriority[] = Nexus::class;
 
         // Add middleware group named 'nexus' with everything needed for us
         $router->middlewareGroup(
@@ -94,20 +94,26 @@ class NexusServiceProvider extends ServiceProvider
         );
 
         $router::macro('nexus', function ($parameters, $routes) {
-            /** @var Site $site */
+            $domains = $parameters['domains'];
+
+            if (empty($domains)) {
+                return;
+            }
+
             $site = $parameters['site'];
 
+            Arr::forget($parameters, 'domains');
             Arr::forget($parameters, 'site');
 
-            if (count($site->getDomains()) == 1) {
-                $regex = $site->getDomains()[0];
+            if (count($domains) === 1) {
+                $regex = $domains[0];
             } else {
-                $regex = '(' . implode('|', $site->getDomains()) . ')';
+                $regex = '(' . implode('|', $domains) . ')';
             }
 
             $this->group(array_merge($parameters, [
-                'domain' => '{__nexus_' . $site->getName() . '}',
-                'where' => ['__nexus_' . $site->getName() => $regex]
+                'domain' => '{__nexus_' . $site . '}',
+                'where' => ['__nexus_' . $site => $regex]
             ]), $routes);
         });
 

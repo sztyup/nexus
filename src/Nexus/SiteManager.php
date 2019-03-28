@@ -115,9 +115,9 @@ class SiteManager
 
 
         // Sets routing domain defaults
-        foreach ($this->getEnabledSites() as $site) {
+        foreach ($this->all() as $site) {
             $this->urlGenerator->defaults([
-                '__nexus_' . $site->getName() => $site->getDomains()[0]
+                '__nexus_' . $site->getName() => $site->getPrimaryDomain()
             ]);
         }
     }
@@ -131,10 +131,10 @@ class SiteManager
      */
     public function handleResponse(Response $response)
     {
-        $sites = $this->getEnabledSites();
+        $sites = $this->all();
 
         // remove the current site from the collection
-        $sites->forget($sites->search($this->current()));
+        $sites = $sites->except($sites->search($this->current()));
 
         $encrypter = $this->container->make(Encrypter::class);
 
@@ -187,13 +187,18 @@ class SiteManager
         foreach ($this->getConfig('sites') ?? [] as $site => $siteOptions) {
             $domains = [];
             $params = [];
+            $primary = null;
 
             foreach ($repository->getBySlug($site) ?? [] as $siteModel) {
-                if (!$siteModel->isEnabled()) {
-                    continue;
-                }
+                $domains[$siteModel->getDomain()] = $siteModel->isEnabled();
 
-                $domains[] = $siteModel->getDomain();
+                if ($siteModel->isPrimary()) {
+                    if ($primary) {
+                        throw new NexusException('Can only have one primary domain per site, "' . $site . '" have more');
+                    }
+
+                    $primary = $siteModel->getDomain();
+                }
 
                 foreach ($siteOptions['extra_params'] ?? [] + $this->getConfig('global_params') ?? [] as $param => $paramOptions) {
                     if ($siteModel->getExtraData($param)) {
@@ -202,6 +207,10 @@ class SiteManager
                         throw new NexusException('Require parameter[' . $param . '] is not given for Site: ' . $site);
                     }
                 }
+            }
+
+            if ($primary === null) {
+                throw new NexusException('Must have exactly one primary domain for site ' . $site);
             }
 
             $commonRegistrars = Collection::make();
@@ -216,7 +225,11 @@ class SiteManager
 
             // Always have at least one domain to avoid missing routes errors
             if (empty($domains)) {
-                $domains[] = $site . '.nexus.local';
+                throw new NexusException('All site must have at least one domain');
+            }
+
+            if (empty(array_filter($domains))) {
+                throw new NexusException('Site "' . $site . '" must have at least one enabled domain');
             }
 
             $this->sites->push(
@@ -225,7 +238,8 @@ class SiteManager
                     'domains' => $domains,
                     'name' => $site,
                     'title' => $siteOptions['title'] ?? 'Névtelen',
-                    'domainParams' => $params
+                    'domainParams' => $params,
+                    'primaryDomain' => $primary
                 ])
             );
         }
@@ -258,7 +272,8 @@ class SiteManager
             /** @noinspection PhpUndefinedMethodInspection */
             $this->router->nexus([
                 'middleware' => ['nexus', 'web'],
-                'site' => $site,
+                'site' => $site->getName(),
+                'domains' => $site->getEnabledDomains()
             ], function (Router $router) use ($site) {
                 include __DIR__ . '/../routes/resources.php';
 
@@ -381,10 +396,5 @@ class SiteManager
     public function all(): Collection
     {
         return $this->sites;
-    }
-
-    public function getEnabledSites(): Collection
-    {
-        return $this->findBy('enabled', true);
     }
 }
