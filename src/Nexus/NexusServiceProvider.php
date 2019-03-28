@@ -124,20 +124,20 @@ class NexusServiceProvider extends ServiceProvider
     protected function bladeDirectives(BladeCompiler $blade)
     {
         // @route blade funcion, for site specific routes
-        $blade->directive("route", function ($expression) {
+        $blade->directive('route', function ($expression) {
             return "<?php echo \$__nexus_site->route($expression); ?>";
         });
 
-        $blade->directive("css", function () {
-            return "<?php echo \$__nexus_site->css(); ?>";
+        $blade->directive('css', function () {
+            return '<?php echo $__nexus_site->css(); ?>';
         });
 
-        $blade->directive("js", function () {
-            return "<?php echo \$__nexus_site->js(); ?>";
+        $blade->directive('js', function () {
+            return '<?php echo $__nexus_site->js(); ?>';
         });
 
-        $blade->directive("resource", function () {
-            return "<?php echo  ?>";
+        $blade->directive('resource', function () {
+            return '<?php echo  ?>';
         });
     }
 
