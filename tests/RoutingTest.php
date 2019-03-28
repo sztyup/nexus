@@ -69,4 +69,11 @@ class RoutingTest extends TestCase
             ->assertSee('foobar')
         ;
     }
+
+    public function testDisabledDomains()
+    {
+        $this->get('https://foo2.com')
+            ->assertStatus(503)
+        ;
+    }
 }

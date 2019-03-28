@@ -30,19 +30,20 @@ class ModelRepo implements SiteRepositoryContract
     {
         if ($slug == 'foo') {
             return Collection::make([
-                new DummySite('foo', 'foo.com'),
+                new DummySite('foo', 'foo.com', true),
+                new DummySite('foo', 'foo2.com', false, true),
             ]);
         }
 
         if ($slug == 'bar') {
             return Collection::make([
-                new DummySite('bar', 'bar.com')
+                new DummySite('bar', 'bar.com', true)
             ]);
         }
 
         if ($slug == 'foobar') {
             return Collection::make([
-                new DummySite('foobar', 'bob.com'),
+                new DummySite('foobar', 'bob.com', true),
                 new DummySite('foobar', 'alice.com')
             ]);
         }

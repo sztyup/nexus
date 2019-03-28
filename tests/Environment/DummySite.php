@@ -9,10 +9,15 @@ class DummySite implements SiteModelContract
     private $name;
     private $domain;
 
-    public function __construct($name, $domain)
+    private $primary;
+    private $disabled;
+
+    public function __construct($name, $domain, $primary = false, $disabled = false)
     {
         $this->name = $name;
         $this->domain = $domain;
+        $this->primary = $primary;
+        $this->disabled = $disabled;
     }
 
     /**
@@ -20,7 +25,7 @@ class DummySite implements SiteModelContract
      *
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -30,7 +35,7 @@ class DummySite implements SiteModelContract
      *
      * @return mixed
      */
-    public function getDomain()
+    public function getDomain(): string
     {
         return $this->domain;
     }
@@ -40,9 +45,9 @@ class DummySite implements SiteModelContract
      *
      * @return bool
      */
-    public function isEnabled()
+    public function isEnabled(): bool
     {
-        return true;
+        return !$this->disabled;
     }
 
     /**
@@ -54,5 +59,10 @@ class DummySite implements SiteModelContract
     public function getExtraData($key)
     {
         return null;
+    }
+
+    public function isPrimary(): bool
+    {
+        return $this->primary;
     }
 }
