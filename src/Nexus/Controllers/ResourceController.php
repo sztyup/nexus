@@ -32,7 +32,11 @@ class ResourceController extends Controller
 
     public function internalAuth()
     {
-        return $this->responseFactory->make();
+        $img = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+pHgAHhgKBUytxTwAAAABJRU5ErkJggg==';
+
+        return $this->responseFactory->make(base64_decode($img), 200, [
+            'Content-Type' => 'image/png'
+        ]);
     }
 
     /**
