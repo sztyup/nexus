@@ -236,7 +236,7 @@ class Site
         /** @noinspection PhpUndefinedMethodInspection */
         $router->nexus([
             'site' => $this->getName(),
-            'domains' => $this->getEnabledDomains()
+            'domains' => $this->getDomains()
         ], function () use ($router) {
             $this->commonRegistrars->each(function (CommonRouteGroup $routeGroup) {
                 $routeGroup->setSite($this)->register();
@@ -252,14 +252,6 @@ class Site
                 /** @noinspection PhpIncludeInspection */
                 include $this->getRoutesFile();
             });
-        });
-
-        /** @noinspection PhpUndefinedMethodInspection */
-        $router->nexus([
-            'site' => $this->getName(),
-            'domains' => $this->getDisabledDomains()
-        ], function () use ($router) {
-            $router->get('{all?}', $this->config['disabled_route'])->where('all', '.*');
         });
     }
 
