@@ -13,6 +13,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Sztyup\Nexus\Contracts\SiteRepositoryContract;
 use Sztyup\Nexus\Controllers\ResourceController;
 use Sztyup\Nexus\Events\SiteFound;
@@ -101,6 +102,13 @@ class SiteManager
     {
         $this->request = $request;
 
+        // Sets routing domain defaults
+        foreach ($this->all() as $site) {
+            $this->urlGenerator->defaults([
+                '__nexus_' . $site->getName() => $site->getPrimaryDomain()
+            ]);
+        }
+
         if ($this->current === null) {
             // Determine current site
             $currentSite = $this->getByDomain($request->getHost());
@@ -110,15 +118,11 @@ class SiteManager
                 ]);
 
                 $this->registerCurrentSite($currentSite);
+
+                if (in_array($request->getHost(), $currentSite->getDisabledDomains(), true)) {
+                    throw new NotFoundHttpException();
+                }
             }
-        }
-
-
-        // Sets routing domain defaults
-        foreach ($this->all() as $site) {
-            $this->urlGenerator->defaults([
-                '__nexus_' . $site->getName() => $site->getPrimaryDomain()
-            ]);
         }
     }
 
@@ -227,10 +231,6 @@ class SiteManager
             // Always have at least one domain to avoid missing routes errors
             if (empty($domains)) {
                 throw new NexusException('All site must have at least one domain');
-            }
-
-            if (empty(array_filter($domains))) {
-                throw new NexusException('Site "' . $site . '" must have at least one enabled domain');
             }
 
             $this->sites->push(

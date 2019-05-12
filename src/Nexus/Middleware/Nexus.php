@@ -3,6 +3,7 @@
 namespace Sztyup\Nexus\Middleware;
 
 use Illuminate\Http\Response;
+use Sztyup\Nexus\Exceptions\NexusException;
 use Sztyup\Nexus\SiteManager;
 use Illuminate\Http\Request;
 use Closure;
@@ -26,7 +27,7 @@ class Nexus
      * @param Closure $next
      *
      * @return mixed
-     * @throws \Sztyup\Nexus\Exceptions\NexusException
+     * @throws NexusException
      */
     public function handle(Request $request, Closure $next)
     {

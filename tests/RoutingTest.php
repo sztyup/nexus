@@ -73,7 +73,7 @@ class RoutingTest extends TestCase
     public function testDisabledDomains()
     {
         $this->get('https://foo2.com')
-            ->assertStatus(503)
+            ->assertStatus(404)
         ;
     }
 }
