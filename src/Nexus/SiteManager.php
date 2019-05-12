@@ -274,7 +274,7 @@ class SiteManager
             $this->router->nexus([
                 'middleware' => ['nexus', 'web'],
                 'site' => $site->getName(),
-                'domains' => $site->getEnabledDomains()
+                'domains' => $site->getDomains()
             ], function (Router $router) use ($site) {
                 include __DIR__ . '/../routes/resources.php';
 
