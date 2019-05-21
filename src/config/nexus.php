@@ -63,7 +63,8 @@ return [
     */
     'sites' => [
         'Foo' => [
-            'title' => 'Foo site'
+            'title' => 'Foo site',
+            'default_domain' => 'example.com'
         ]
     ],
 

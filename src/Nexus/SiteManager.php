@@ -214,6 +214,11 @@ class SiteManager
                 }
             }
 
+            if (empty($domains)) {
+                $primary = $siteOptions['default_domain'];
+                $domains[$primary] = true;
+            }
+
             if ($primary === null) {
                 throw new NexusException('Must have exactly one primary domain for site ' . $site);
             }
@@ -226,11 +231,6 @@ class SiteManager
                 }
 
                 $commonRegistrars->push($group);
-            }
-
-            // Always have at least one domain to avoid missing routes errors
-            if (empty($domains)) {
-                throw new NexusException('All site must have at least one domain');
             }
 
             $this->sites->push(
