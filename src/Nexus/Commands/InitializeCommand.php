@@ -44,10 +44,7 @@ class InitializeCommand extends Command
         $this->info('Nexus Initialization');
 
         // Save sites info for nodejs
-        $this->filesystem->put(
-            $this->config['directories']['assets'] . DIRECTORY_SEPARATOR . 'sites.json',
-            $this->sitesToJson()
-        );
+        $this->filesystem->put('sites.json', $this->sitesToJson());
 
         $this->info('Writing sites cache');
     }
