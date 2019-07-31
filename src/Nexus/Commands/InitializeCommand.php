@@ -5,6 +5,7 @@ namespace Sztyup\Nexus\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Support\Str;
 
 class InitializeCommand extends Command
 {
@@ -43,10 +44,7 @@ class InitializeCommand extends Command
         $this->info('Nexus Initialization');
 
         // Save sites info for nodejs
-        $this->filesystem->put(
-            $this->config['directories']['assets'] . DIRECTORY_SEPARATOR . 'sites.json',
-            $this->sitesToJson()
-        );
+        $this->filesystem->put('sites.json', $this->sitesToJson());
 
         $this->info('Writing sites cache');
     }
@@ -58,7 +56,14 @@ class InitializeCommand extends Command
      */
     protected function sitesToJson()
     {
-        $sites = $this->config['sites'];
+        $sites = [];
+
+        foreach ($this->config['sites'] as $slug => $site) {
+            $sites[] = [
+                'slug' => Str::lower($slug),
+                'title' => $site['title']
+            ];
+        }
 
         return json_encode([
             'sites' => $sites
