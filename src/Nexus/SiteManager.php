@@ -135,7 +135,7 @@ class SiteManager
      */
     public function handleResponse(Response $response)
     {
-        $sites = $this->all();
+        $sites = $this->enabled();
 
         // remove the current site from the collection
         $sites = $sites->except($sites->search($this->current()));
@@ -398,5 +398,10 @@ class SiteManager
     public function all(): Collection
     {
         return $this->sites;
+    }
+
+    public function enabled(): Collection
+    {
+        return $this->findBy('enabled', true);
     }
 }

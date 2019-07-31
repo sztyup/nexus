@@ -3,6 +3,7 @@
 namespace Sztyup\Nexus\Middleware;
 
 use Illuminate\Http\Response;
+use Illuminate\Support\Str;
 use Sztyup\Nexus\Exceptions\NexusException;
 use Sztyup\Nexus\SiteManager;
 use Illuminate\Http\Request;
@@ -35,7 +36,7 @@ class Nexus
 
         $response = $next($request);
 
-        if ($response instanceof Response) {
+        if ($response instanceof Response && Str::startsWith($response->headers->get('Content-type'), 'text/html')) {
             $this->siteManager->handleResponse($response);
         }
 

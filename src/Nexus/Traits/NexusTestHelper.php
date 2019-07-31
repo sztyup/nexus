@@ -53,7 +53,7 @@ trait NexusTestHelper
         $responseFactory
             ->shouldReceive('file')
             ->withArgs([$path])
-            ->andReturn(new Response($testContent = Str::random()));
+            ->andReturn(new Response($testContent = Str::random(), 200, ['Content-type' => 'application/octet-stream']));
 
         $this->get($url)
             ->assertSuccessful()

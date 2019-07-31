@@ -119,8 +119,17 @@ class Site
         return array_keys($this->domains);
     }
 
-    public function isEnabled($domain): bool
+    public function isEnabled($domain = null): bool
     {
+        if ($domain === null) {
+            foreach ($this->getDomains() as $d) {
+                if ($this->isEnabled($d)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
         return $this->domains[$domain] ?? false;
     }
 
