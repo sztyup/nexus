@@ -36,7 +36,9 @@ class Nexus
 
         $response = $next($request);
 
-        if ($response instanceof Response && Str::startsWith($response->headers->get('Content-type'), 'text/html')) {
+        $type = $response->headers->get('Content-type');
+
+        if ($response instanceof Response && ($type === null || Str::startsWith($type, 'text/html'))) {
             $this->siteManager->handleResponse($response);
         }
 
