@@ -18,6 +18,8 @@ use Sztyup\Nexus\Contracts\SiteRepositoryContract;
 use Sztyup\Nexus\Controllers\ResourceController;
 use Sztyup\Nexus\Events\SiteFound;
 use Sztyup\Nexus\Exceptions\NexusException;
+use Sztyup\Nexus\Middleware\Nexus;
+use Sztyup\Nexus\Middleware\StartSession;
 
 class SiteManager
 {
@@ -70,15 +72,12 @@ class SiteManager
         Container $container,
         Dispatcher $dispatcher
     ) {
-        $this->sites = new Collection();
         $this->viewFactory = $viewFactory;
         $this->urlGenerator = $urlGenerator;
         $this->container = $container;
         $this->router = $router;
         $this->config = $config;
         $this->dispatcher = $dispatcher;
-
-        $this->loadSitesFromRepo();
     }
 
     /**
@@ -97,9 +96,14 @@ class SiteManager
      * Handles request
      *
      * @param Request $request
+     *
+     * @throws NexusException
+     * @throws \ReflectionException
      */
     public function handleRequest(Request $request)
     {
+        $this->load();
+        $this->registerRoutes();
         $this->request = $request;
 
         // Sets routing domain defaults
@@ -174,8 +178,14 @@ class SiteManager
      * @throws NexusException
      * @throws \ReflectionException
      */
-    protected function loadSitesFromRepo()
+    protected function load()
     {
+        if ($this->sites !== null) {
+            return;
+        }
+
+        $this->sites = Collection::make();
+
         $repositoryClass = $this->getConfig('model_repository');
 
         // Check if it implements required Contract
@@ -251,6 +261,16 @@ class SiteManager
      */
     public function registerRoutes()
     {
+        $this->router->middlewarePriority[] = Nexus::class;
+
+        // Add middleware group named 'nexus' with everything needed for us
+        $this->router->middlewareGroup(
+            'nexus',
+            [
+                StartSession::class,
+                Nexus::class
+            ]
+        );
         /*
          * Main domain, where the central authentication takes place, can be moved by enviroment,
          * and independent of the sites storage, the asset generator pipeline and much else
@@ -331,10 +351,14 @@ class SiteManager
     /**
      * @param $field
      * @param $value
+     *
      * @return Collection
+     * @throws NexusException
+     * @throws \ReflectionException
      */
     protected function findBy($field, $value): Collection
     {
+        $this->load();
         return $this->sites->filter(function (Site $site) use ($field, $value) {
             if (method_exists($site, 'get' . ucfirst($field))) {
                 $got = $site->{'get' . ucfirst($field)}();
@@ -397,6 +421,7 @@ class SiteManager
      */
     public function all(): Collection
     {
+        $this->load();
         return $this->sites;
     }
 

@@ -5,7 +5,6 @@ namespace Sztyup\Nexus;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Routing\Router;
 use Illuminate\Session\SessionManager;
@@ -14,7 +13,6 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
 use Sztyup\Nexus\Commands\InitializeCommand;
-use Sztyup\Nexus\Middleware\Nexus;
 use Sztyup\Nexus\Middleware\StartSession;
 
 class NexusServiceProvider extends ServiceProvider
@@ -23,7 +21,6 @@ class NexusServiceProvider extends ServiceProvider
         BladeCompiler $blade,
         Repository $config,
         SiteManager $manager,
-        Router $router,
         Dispatcher $dispatcher
     ) {
         $this->publishes([
@@ -38,11 +35,9 @@ class NexusServiceProvider extends ServiceProvider
             ]);
         }
 
-        $this->bootRouting($manager, $router);
+        $this->bootRouting();
 
         $this->app->refresh('request', $manager, 'handleRequest');
-
-        $manager->handleRequest($this->app->make(Request::class));
 
         $this->filesystems($manager, $config);
         $this->registerListeners($dispatcher);
@@ -80,20 +75,9 @@ class NexusServiceProvider extends ServiceProvider
         });
     }
 
-    protected function bootRouting(SiteManager $manager, Router $router)
+    protected function bootRouting()
     {
-        $router->middlewarePriority[] = Nexus::class;
-
-        // Add middleware group named 'nexus' with everything needed for us
-        $router->middlewareGroup(
-            'nexus',
-            [
-                StartSession::class,
-                Nexus::class
-            ]
-        );
-
-        $router::macro('nexus', function ($parameters, $routes) {
+        Router::macro('nexus', function ($parameters, $routes) {
             $domains = $parameters['domains'];
 
             if (empty($domains)) {
@@ -117,9 +101,6 @@ class NexusServiceProvider extends ServiceProvider
                 'where' => ['__nexus_' . $site => $regex]
             ]), $routes);
         });
-
-        // Register all routes for the sites
-        $manager->registerRoutes();
     }
 
     protected function bladeDirectives(BladeCompiler $blade)
